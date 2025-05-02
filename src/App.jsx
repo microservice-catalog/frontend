@@ -1,8 +1,11 @@
 // src/App.jsx
 import React from 'react';
 import {Route, Routes} from 'react-router-dom';
-import LoginPageContainer from "./pages/LoginPageContainer.jsx";
-import HeaderContainer from "./pages/HeaderContainer.jsx";
+import LoginPageContainer from "./pages/login/LoginPageContainer.jsx";
+import HeaderContainer from "./components/header/HeaderContainer.jsx";
+import RegisterPageContainer from "./pages/register/RegisterPageContainer.jsx";
+import ProfilePageContainer from "./pages/profile/ProfilePageContainer.jsx";
+import HomePageContainer from "./pages/home/HomePageContainer.jsx";
 
 
 function App() {
@@ -13,8 +16,20 @@ function App() {
 
             <Routes>
                 <Route
+                    path="/"
+                    element={<HomePageContainer/>}
+                />
+                <Route
                     path="/login"
                     element={<LoginPageContainer/>}
+                />
+                <Route
+                    path="/register"
+                    element={<RegisterPageContainer/>}
+                />
+                <Route
+                    path="/profile"
+                    element={<ProfilePageContainer/>}
                 />
             </Routes>
 

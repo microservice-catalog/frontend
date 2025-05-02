@@ -2,7 +2,7 @@
 import React, {useState} from 'react';
 import {useNavigate} from 'react-router-dom';
 import {Box, Button, Container, Divider, Paper, Stack, TextField, Typography} from '@mui/material';
-import {useAuth} from '../context/AuthContext.jsx';
+import {useAuth} from '../../context/AuthContext.jsx';
 
 function LoginPageContainer() {
     const [username, setUsername] = useState('');

@@ -1,16 +1,18 @@
 import React, {createContext, useContext, useEffect, useState} from 'react';
-import {authApi, userApi} from "../api/api.jsx";
+import {authApi, userApi} from "./api/api.jsx";
 
 const AuthContext = createContext();
 
 // Provider component
 export const AuthProvider = ({children}) => {
-    const [isAuthenticated, setAuthenticated] = useState(false);
     const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const [authLoading, setAuthLoading] = useState(true);
+    const [isAuthenticated, setAuthenticated] = useState(true);
 
     // Fetch current user using /users/me
     const fetchUser = async () => {
+        setAuthLoading(true);
+        alert("setLoading(true);")
         try {
             const response = await userApi.getMe();
             setUser(response.data);
@@ -19,39 +21,42 @@ export const AuthProvider = ({children}) => {
             setUser(null);
             setAuthenticated(false);
         } finally {
-            setLoading(false);
+            alert(" finally {")
+            setAuthLoading(false);
         }
     };
 
     useEffect(() => {
+        setAuthLoading(true);
         fetchUser();
+        setAuthLoading(false);
     }, []);
 
     // Login: posts credentials, server sets cookie, then fetch user data
     const login = async (username, password) => {
-        setLoading(true);
+        setAuthLoading(true);
         try {
             await authApi.login({"username": username, "password": password});
             await fetchUser();
         } finally {
-            setLoading(false);
+            setAuthLoading(false);
         }
     };
 
     // Logout: clears server session/cookie, then reset client state
     const logout = async () => {
-        setLoading(true);
+        setAuthLoading(true);
         try {
             await authApi.logout();
         } catch (ignored) {
         }
         setAuthenticated(false);
         setUser(null);
-        setLoading(false);
+        setAuthLoading(false);
     };
 
     return (
-        <AuthContext.Provider value={{user, loading, login, logout, isAuthenticated}}>
+        <AuthContext.Provider value={{user, loading: authLoading, login, logout, isAuthenticated}}>
             {children}
         </AuthContext.Provider>
     );

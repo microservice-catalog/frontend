@@ -1,62 +1,64 @@
-import Skeleton from "@mui/material/Skeleton";
-import IconButton from "@mui/material/IconButton";
-import Avatar from "@mui/material/Avatar";
-import Menu from "@mui/material/Menu";
-import MenuItem from "@mui/material/MenuItem";
-import {Link} from "react-router-dom";
 import React, {useEffect, useState} from "react";
+import {Link} from "react-router-dom";
+import {Avatar, Box, Button, IconButton, Menu, MenuItem, Skeleton, Stack} from "@mui/material";
 
-// Абстрактный URL для дефолтной аватарки
 const DEFAULT_AVATAR_URL = '/vite.svg';
 
-function ProfileButtons({username = "user", avatarUrl, onLogout}) {
+function ProfileView({isAuthenticated, avatarUrl, onLogout}) {
+    // После загрузки — если не авторизован, показываем две кнопки
+    if (!isAuthenticated) {
+        return (
+            <Stack direction="row" spacing={1}>
+                <Button color="inherit" component={Link} to="/login">
+                    Войти
+                </Button>
+                <Button color="inherit" component={Link} to="/register">
+                    Регистрация
+                </Button>
+            </Stack>
+        );
+    }
+
+    // Авторизован — подгружаем и показываем аватар + меню
     const [anchorEl, setAnchorEl] = useState(null);
     const [imgSrc, setImgSrc] = useState(avatarUrl || DEFAULT_AVATAR_URL);
-    const [loading, setLoading] = useState(!!avatarUrl);
+    const [avatarLoading, setAvatarLoading] = useState(!!avatarUrl);
 
     useEffect(() => {
         if (!avatarUrl) {
             setImgSrc(DEFAULT_AVATAR_URL);
-            setLoading(false);
+            setAvatarLoading(false);
             return;
         }
-        setLoading(true);
+        setAvatarLoading(true);
         const img = new Image();
         img.src = avatarUrl;
         img.onload = () => {
             setImgSrc(avatarUrl);
-            setLoading(false);
+            setAvatarLoading(false);
         };
         img.onerror = () => {
             setImgSrc(DEFAULT_AVATAR_URL);
-            setLoading(false);
+            setAvatarLoading(false);
         };
     }, [avatarUrl]);
 
-    const handleAvatarClick = (event) => {
-        setAnchorEl(event.currentTarget);
-    };
-    const handleMenuClose = () => {
-        setAnchorEl(null);
-    };
+    const handleAvatarClick = (e) => setAnchorEl(e.currentTarget);
+    const handleMenuClose = () => setAnchorEl(null);
+
     const avatarSx = {ml: 1, mr: 1, p: 1};
+
     return (
-        <div>
-            {/* Аватарка с skeleton-плейсхолдером */}
-            {loading ? (
+        <Box>
+            {avatarLoading ? (
                 <Skeleton variant="circular" sx={avatarSx} width={40} height={40} />
             ) : (
                 <IconButton onClick={handleAvatarClick} sx={avatarSx}>
-                    <Avatar src={imgSrc} alt={username} />
+                    <Avatar src={imgSrc} alt={"userAvatar"}/>
                 </IconButton>
             )}
 
-            {/* Меню по клику на аватарку */}
-            <Menu
-                anchorEl={anchorEl}
-                open={Boolean(anchorEl)}
-                onClose={handleMenuClose}
-            >
+            <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
                 <MenuItem component={Link} to="/profile" onClick={handleMenuClose}>
                     Личный кабинет
                 </MenuItem>
@@ -75,8 +77,8 @@ function ProfileButtons({username = "user", avatarUrl, onLogout}) {
                     Выйти
                 </MenuItem>
             </Menu>
-        </div>
+        </Box>
     );
 }
 
-export default ProfileButtons;
+export default ProfileView;
