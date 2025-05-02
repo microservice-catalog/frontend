@@ -1,5 +1,5 @@
 import React, {createContext, useContext, useEffect, useState} from 'react';
-import {authApi, userApi} from "./api/api.jsx";
+import {authApi, userApi} from "../api/api.jsx";
 
 const AuthContext = createContext();
 
@@ -27,6 +27,7 @@ export const AuthProvider = ({children}) => {
     useEffect(() => {
         setAuthLoading(true);
         fetchUser();
+        console.log(JSON.stringify(user));
         setAuthLoading(false);
     }, []);
 
@@ -34,7 +35,7 @@ export const AuthProvider = ({children}) => {
     const login = async (username, password) => {
         setAuthLoading(true);
         try {
-            await authApi.login({"username": username, "password": password});
+            await authApi.login({username, password});
             await fetchUser();
         } finally {
             setAuthLoading(false);

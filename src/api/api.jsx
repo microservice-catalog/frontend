@@ -1,4 +1,4 @@
-import axiosInstance, { API_URLS, PROJECT_URL } from './AxiosInstanse.jsx'
+import axiosInstance, {API_URLS, PROJECT_URL} from './AxiosInstanse.jsx'
 
 export const authApi = {
     // Регистрация нового пользователя.
@@ -37,7 +37,7 @@ export const userApi = {
     // Обновить профиль.
 // Параметры: { name, bio, avatarUrl, ... }
     updateProfile: (data) =>
-        axiosInstance.put(API_URLS.PROFILE, data),
+        axiosInstance.patch(API_URLS.PROFILE, data),
 };
 
 export const projectApi = {
@@ -62,4 +62,16 @@ export const projectApi = {
     // Удалить проект
     deleteProject: (userName, projectName) =>
         axiosInstance.delete(PROJECT_URL(userName, projectName)),
+
+    addFavourite: (userName, projectName) =>
+        axiosInstance.put(`${PROJECT_URL(userName, projectName)}/favourite`),
+
+    removeFavourite: (userName, projectName) =>
+        axiosInstance.delete(`${PROJECT_URL(userName, projectName)}/favourite`),
+
+    toggleFavourite: async (userName, projectName, liked) => {
+        return liked
+            ? projectApi.removeFavourite(userName, projectName)
+            : projectApi.addFavourite(userName, projectName);
+    },
 };

@@ -1,5 +1,6 @@
 import axios from 'axios';
 import camelcaseKeys from "camelcase-keys";
+import snakecaseKeys from 'snakecase-keys';
 
 axios.defaults.withCredentials = true;
 
@@ -28,25 +29,40 @@ export const PROJECT_URL = (userName, projectName) => {
 };
 
 // Создаем axios экземпляр
+export const toCamel = (data) => {
+    // если пришла строка – пытаемся распарсить JSON
+    const parsed = (data && typeof data === 'string') ? JSON.parse(data) : data;
+    return camelcaseKeys(parsed, {deep: true});
+};
+
+export const toSnake = (data) => {
+    return snakecaseKeys(data, {deep: true});
+};
 const axiosInstance = axios.create({
     baseURL: CORE_BASE_URL,
-    withCredentials: true,  // Обязательно для работы с cookie
+    withCredentials: true,
+    headers: {
+        'Content-Type': 'application/json',
+    },
+    // Преобразуем ответ: JSON.parse -> camelCase
     transformResponse: [
-        // сначала прогоняем через дефолтные трансформеры (чтобы учесть JSON.stringify, etc.)
-        ...axios.defaults.transformResponse,
         (data) => {
-            // если тело пустое или это не строка — просто возвращаем «как есть»
-            if (typeof data !== 'string' || !data.trim()) {
-                return data;
-            }
-            // пытаемся распарсить и кейс-конвертировать
+            if (!data) return data;
             try {
-                const parsed = JSON.parse(data);
-                return camelcaseKeys(parsed, {deep: true});
-            } catch (e) {
-                // не JSON — возвращаем оригинал
+                return toCamel(JSON.parse(data));
+            } catch {
                 return data;
             }
+        }
+    ],
+    // Преобразуем запрос: camelCase -> snake_case -> JSON.stringify
+    transformRequest: [
+        (data) => {
+            // Если data — объект или массив, конвертим
+            if (data && typeof data === 'object') {
+                return JSON.stringify(toSnake(data));
+            }
+            return data;
         }
     ]
 });

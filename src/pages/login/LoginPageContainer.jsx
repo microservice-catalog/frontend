@@ -29,6 +29,7 @@ function LoginPageContainer() {
             await login(username, password);
             navigate('/');
         } catch (err) {
+            console.log(err)
             setError(err.customMessage || 'Не удалось войти, попробуйте ещё раз');
         }
     };

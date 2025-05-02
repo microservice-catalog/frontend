@@ -2,7 +2,7 @@
 import React, {useState} from 'react';
 import {useLocation, useNavigate} from 'react-router-dom';
 import {Box, Button, Container, Link, Paper, Stack, TextField, Typography} from '@mui/material';
-import {authApi} from '../../context/api/api.jsx';
+import {authApi} from '../../api/api.jsx';
 
 function ConfirmEmailPage() {
     const navigate = useNavigate();

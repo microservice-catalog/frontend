@@ -3,7 +3,7 @@ import React, {useState} from 'react';
 import {useNavigate} from 'react-router-dom';
 import {Box, Button, Container, Divider, Paper, Stack, TextField, Typography} from '@mui/material';
 // импорт API регистрации и подтверждения
-import {authApi} from '../../context/api/api.jsx';
+import {authApi} from '../../api/api.jsx';
 
 // CSS-реализация анимации "shake" для sx
 const shakeAnimation = {
