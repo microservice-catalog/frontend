@@ -42,8 +42,13 @@ export const userApi = {
 
 export const projectApi = {
     // Список всех проектов текущего юзера
-    getProjects: () =>
-        axiosInstance.get(API_URLS.PROJECTS),
+    /**
+     * Get list of projects with pagination
+     * @param {number} page - Zero-based page index
+     * @param {number} limit - Page size
+     */
+    getHomeProjects: (page = 0, limit = 20) =>
+        axiosInstance.get(API_URLS.PROJECTS, {params: {page, limit}}),
 
     // Создать новый проект.
 // Параметры: { name, description, ... }
@@ -51,7 +56,7 @@ export const projectApi = {
         axiosInstance.post(API_URLS.PROJECTS, data),
 
     // Получить конкретный проект по user и projectName
-    getProject: (userName, projectName) =>
+    getProject: (userName, projectName, page = 0, limit = 20) =>
         axiosInstance.get(PROJECT_URL(userName, projectName)),
 
     // Обновить проект.

@@ -23,37 +23,50 @@ export default function PublicProjectCard({project, onToggleLike}) {
     };
 
     return (
-        <Card>
-            <CardContent>
+        <Card elevation={2}>
+            <CardContent sx={{pb: 0}}>
                 <Typography
                     variant="h6"
+                    color="primary"
                     component={Link}
                     to={`/projects/${authorUsername}/${projectName}`}
                     sx={{textDecoration: 'none'}}
                 >
                     {title}
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
+                <Typography variant="body2" color="text.secondary" sx={{mb: 1}}>
                     {projectName}
                 </Typography>
                 {tags?.length > 0 && (
                     <Stack direction="row" spacing={1} mt={1} flexWrap="wrap">
                         {tags.map((tag) => (
-                            <Chip key={tag} label={tag} size="small"/>
+                            <Chip key={tag} label={tag} size="small" color="secondary"/>
                         ))}
                     </Stack>
                 )}
-                <Stack direction="row" spacing={2} mt={2} alignItems="center">
-                    <IconButton onClick={handleLike}>
-                        {likedByMe ? <Favorite color="error"/> : <FavoriteBorder/>}
+                <Stack direction="row" spacing={1} mt={2} alignItems="center">
+                    <IconButton onClick={handleLike} color={likedByMe ? 'error' : 'default'}>
+                        {likedByMe ? <Favorite/> : <FavoriteBorder/>}
                     </IconButton>
-                    <Typography variant="caption">👍 {likesCount}</Typography>
-                    <Typography variant="caption">⬇️ {downloadsCount}</Typography>
-                    <Typography variant="caption">👁️ {viewsCount}</Typography>
+                    <Typography variant="caption" color="text.primary">
+                        {likesCount}
+                    </Typography>
+                    <Typography variant="caption" color="text.primary">
+                        ⬇️ {downloadsCount}
+                    </Typography>
+                    <Typography variant="caption" color="text.primary">
+                        👁️ {viewsCount}
+                    </Typography>
                 </Stack>
             </CardContent>
             <CardActions>
-                <Button size="small" component={Link} to={`/projects/${authorUsername}/${projectName}`}>
+                <Button
+                    size="small"
+                    variant="contained"
+                    color="primary"
+                    component={Link}
+                    to={`/projects/${authorUsername}/${projectName}`}
+                >
                     Open
                 </Button>
             </CardActions>
