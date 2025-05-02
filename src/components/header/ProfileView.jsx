@@ -1,16 +1,35 @@
-import React, {useEffect, useState} from "react";
-import {Link} from "react-router-dom";
-import {Avatar, Box, Button, IconButton, Menu, MenuItem, Skeleton, Stack} from "@mui/material";
+// ProfileView.jsx
+import React, {useEffect, useState} from 'react';
+import {Link} from 'react-router-dom';
+import {Avatar, Box, Button, IconButton, Menu, MenuItem, Skeleton, Stack,} from '@mui/material';
 
-const DEFAULT_AVATAR_URL = '/vite.svg';
+const DEFAULT_AVATAR_URL = '/images/default-avatar.png';
 
-function ProfileView({isAuthenticated, avatarUrl, onLogout}) {
-    // ⚠️ Hooks must always run — move them above any conditional return:
+function ProfileGuest() {
+    return (
+        <Stack direction="row" spacing={1}>
+            <Button
+                color="inherit"
+                component={Link}
+                to="/login"
+            >
+                Войти
+            </Button>
+            <Button
+                color="inherit"
+                component={Link}
+                to="/register"
+            >
+                Регистрация
+            </Button>
+        </Stack>
+    );
+}
+
+function ProfileAuth({avatarUrl, onLogout}) {
     const [anchorEl, setAnchorEl] = useState(null);
     const [imgSrc, setImgSrc] = useState(avatarUrl || DEFAULT_AVATAR_URL);
     const [avatarLoading, setAvatarLoading] = useState(!!avatarUrl);
-    const handleAvatarClick = (e) => setAnchorEl(e.currentTarget);
-    const handleMenuClose = () => setAnchorEl(null);
 
     useEffect(() => {
         if (!avatarUrl) {
@@ -31,49 +50,40 @@ function ProfileView({isAuthenticated, avatarUrl, onLogout}) {
         };
     }, [avatarUrl]);
 
-    // Теперь, after your hooks, you can safely branch:
-    if (!isAuthenticated) {
-        return (
-            <Stack direction="row" spacing={1}>
-                <Button color="inherit" component={Link} to="/login">
-                    Войти
-                </Button>
-                <Button color="inherit" component={Link} to="/register">
-                    Регистрация
-                </Button>
-            </Stack>
-        );
-    }
+    const handleAvatarClick = (event) => {
+        setAnchorEl(event.currentTarget);
+    };
 
-    // — and here’s the authenticated UI:
-    const avatarSx = {ml: 1, mr: 1, p: 1};
+    const handleMenuClose = () => {
+        setAnchorEl(null);
+    };
+
+    const handleLogout = () => {
+        handleMenuClose();
+        onLogout();
+    };
+
     return (
         <Box>
             {avatarLoading ? (
-                <Skeleton variant="circular" sx={avatarSx} width={40} height={40}/>
+                <Skeleton variant="circular" width={40} height={40}/>
             ) : (
-                <IconButton onClick={handleAvatarClick} sx={avatarSx}>
-                    <Avatar src={imgSrc} alt={"userAvatar"}/>
+                <IconButton onClick={handleAvatarClick} size="large">
+                    <Avatar src={imgSrc} alt="User Avatar"/>
                 </IconButton>
             )}
 
-            <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
+            <Menu
+                anchorEl={anchorEl}
+                open={Boolean(anchorEl)}
+                onClose={handleMenuClose}
+                anchorOrigin={{vertical: 'bottom', horizontal: 'right'}}
+                transformOrigin={{vertical: 'top', horizontal: 'right'}}
+            >
                 <MenuItem component={Link} to="/profile" onClick={handleMenuClose}>
-                    Личный кабинет
+                    Профиль
                 </MenuItem>
-                <MenuItem component={Link} to="/catalog" onClick={handleMenuClose}>
-                    Каталог
-                </MenuItem>
-                <MenuItem component={Link} to="/projects" onClick={handleMenuClose}>
-                    Создать сервис
-                </MenuItem>
-                <MenuItem
-                    onClick={() => {
-                        onLogout();
-                        handleMenuClose();
-                    }}
-                    component={Link} to="/login"
-                >
+                <MenuItem component={Link} to="/login" onClick={handleLogout}>
                     Выйти
                 </MenuItem>
             </Menu>
@@ -81,4 +91,10 @@ function ProfileView({isAuthenticated, avatarUrl, onLogout}) {
     );
 }
 
-export default ProfileView;
+export default function ProfileView({isAuthenticated, avatarUrl, onLogout}) {
+    return isAuthenticated ? (
+        <ProfileAuth avatarUrl={avatarUrl} onLogout={onLogout}/>
+    ) : (
+        <ProfileGuest/>
+    );
+}
