@@ -2,8 +2,61 @@
 import React, {useState} from 'react';
 import {useNavigate} from 'react-router-dom';
 import {Box, Button, Container, Divider, Paper, Stack, TextField, Typography} from '@mui/material';
-// импорт API регистрации
-import {authApi} from '../../context/api/api.jsx'; // путь может отличаться в вашем проекте :contentReference[oaicite:0]{index=0}:contentReference[oaicite:1]{index=1}
+// импорт API регистрации и подтверждения
+import {authApi} from '../../context/api/api.jsx';
+
+// CSS-реализация анимации "shake" для sx
+const shakeAnimation = {
+    '@keyframes shake': {
+        '0%': {transform: 'translateX(0)'},
+        '25%': {transform: 'translateX(-5px)'},
+        '75%': {transform: 'translateX(5px)'},
+        '100%': {transform: 'translateX(0)'},
+    },
+    animation: 'shake 0.3s',
+};
+
+// Компонент подтверждения email
+function ConfirmEmail({email, confirmCode, setConfirmCode, onConfirm, onResend, isConfirming, error}) {
+    return (
+        <Box>
+            <Typography variant="h6" align="center" gutterBottom>
+                Подтверждение почты
+            </Typography>
+            <Typography variant="body2" align="center" gutterBottom>
+                Код отправлен на {email}
+            </Typography>
+            <Stack spacing={2}>
+                <TextField
+                    label="Код подтверждения"
+                    value={confirmCode}
+                    onChange={e => setConfirmCode(e.target.value)}
+                    fullWidth
+                />
+                {error && (
+                    <Typography variant="body2" color="error" align="center">
+                        {error}
+                    </Typography>
+                )}
+                <Button
+                    variant="contained"
+                    onClick={onConfirm}
+                    disabled={isConfirming || !confirmCode.trim()}
+                    fullWidth
+                >
+                    {isConfirming ? 'Подтверждение...' : 'Подтвердить'}
+                </Button>
+                <Button
+                    variant="text"
+                    onClick={onResend}
+                    disabled={isConfirming}
+                >
+                    Отправить код повторно
+                </Button>
+            </Stack>
+        </Box>
+    );
+}
 
 function RegisterPageContainer() {
     const [username, setUsername] = useState('');
@@ -12,29 +65,36 @@ function RegisterPageContainer() {
     const [passwordConfirm, setPasswordConfirm] = useState('');
     const [error, setError] = useState('');
     const [isSubmitting, setSubmitting] = useState(false);
+    const [shakeUsername, setShakeUsername] = useState(false);
+    const [shakePassword, setShakePassword] = useState(false);
+
+    // для подтверждения почты
+    const [showConfirm, setShowConfirm] = useState(false);
+    const [registeredEmail, setRegisteredEmail] = useState('');
+    const [confirmCode, setConfirmCode] = useState('');
+    const [isConfirming, setConfirming] = useState(false);
     const navigate = useNavigate();
 
-    const handleSubmit = async (e) => {
+    // Обработчик регистрации
+    const handleRegister = async (e) => {
         e.preventDefault();
         setError('');
-
-        // 1) Простая валидация до отправки
-        if (!username.trim()) {
-            setError('Введите имя пользователя');
+        // валидация
+        if (username.trim().length < 5) {
+            setError('Имя пользователя должно содержать не менее 5 символов');
             return;
         }
         if (!email.trim()) {
             setError('Введите email');
             return;
         }
-        // базовая проверка формата email
         const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRe.test(email)) {
             setError('Неверный формат email');
             return;
         }
-        if (!password) {
-            setError('Введите пароль');
+        if (password.length < 8) {
+            setError('Пароль должен содержать не менее 8 символов');
             return;
         }
         if (password !== passwordConfirm) {
@@ -42,15 +102,41 @@ function RegisterPageContainer() {
             return;
         }
 
-        // 2) Отправка на бэкенд
         setSubmitting(true);
         try {
-            await authApi.register({username, email, password});
-            // по успешной регистрации — на логин
+            // отправляем запрос регистрации, backend шлёт код на почту
+            await authApi.register({username: username.trim(), email: email.trim(), password});
+            setRegisteredEmail(email.trim());
+            setShowConfirm(true);
+        } catch (err) {
+            setError(err.customMessage || 'Ошибка при регистрации, попробуйте ещё раз');
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    // Обработчик подтверждения кода
+    const handleConfirm = async () => {
+        setError('');
+        setConfirming(true);
+        try {
+            await authApi.confirmEmail({email: registeredEmail, code: confirmCode.trim()});
             navigate('/login', {state: {justRegistered: true}});
         } catch (err) {
-            // ловим customMessage из Axios-интерсептора
-            setError(err.customMessage || 'Ошибка при регистрации, попробуйте ещё раз');
+            setError(err.customMessage || 'Ошибка подтверждения, проверьте код');
+        } finally {
+            setConfirming(false);
+        }
+    };
+
+    // Обработчик повторной отправки кода
+    const handleResend = async () => {
+        setError('');
+        setSubmitting(true);
+        try {
+            await authApi.register({username: username.trim(), email: registeredEmail, password});
+        } catch (err) {
+            setError('Не удалось отправить код повторно');
         } finally {
             setSubmitting(false);
         }
@@ -59,76 +145,100 @@ function RegisterPageContainer() {
     return (
         <Container maxWidth="xs">
             <Paper elevation={3} sx={{mt: 8, p: 4}}>
-                <Typography variant="h5" align="center" gutterBottom>
-                    Создать аккаунт
-                </Typography>
-
-                <Box component="form" onSubmit={handleSubmit}>
-                    <Stack spacing={2}>
-                        <TextField
-                            label="Имя пользователя"
-                            value={username}
-                            onChange={e => setUsername(e.target.value)}
-                            fullWidth
-                        />
-                        <TextField
-                            label="Email"
-                            value={email}
-                            onChange={e => setEmail(e.target.value)}
-                            fullWidth
-                        />
-                        <TextField
-                            label="Пароль"
-                            type="password"
-                            value={password}
-                            onChange={e => setPassword(e.target.value)}
-                            fullWidth
-                        />
-                        <TextField
-                            label="Подтвердите пароль"
-                            type="password"
-                            value={passwordConfirm}
-                            onChange={e => setPasswordConfirm(e.target.value)}
-                            fullWidth
-                        />
-
-                        {/* рамочка для ошибок */}
-                        {error && (
-                            <Box
-                                sx={{
-                                    border: '1px solid #d32f2f',
-                                    borderRadius: 1,
-                                    p: 1,
-                                    backgroundColor: '#ffebee'
-                                }}
-                            >
-                                <Typography variant="body2" color="error" align="center">
-                                    {error}
-                                </Typography>
-                            </Box>
-                        )}
-
-                        <Button
-                            type="submit"
-                            variant="contained"
-                            fullWidth
-                            disabled={isSubmitting}
-                        >
-                            {isSubmitting ? 'Регистрация...' : 'Зарегистрироваться'}
-                        </Button>
-                    </Stack>
-                </Box>
-
-                <Divider sx={{my: 3}}/>
-
-                <Box textAlign="center">
-                    <Typography variant="body2">
-                        Уже есть аккаунт?{' '}
-                        <Button size="small" onClick={() => navigate('/login')}>
-                            Войти
-                        </Button>
-                    </Typography>
-                </Box>
+                {!showConfirm ? (
+                    <>
+                        <Typography variant="h5" align="center" gutterBottom>
+                            Создать аккаунт
+                        </Typography>
+                        <Box component="form" onSubmit={handleRegister}>
+                            <Stack spacing={2}>
+                                <TextField
+                                    label="Имя пользователя"
+                                    value={username}
+                                    onChange={e => {
+                                        const val = e.target.value;
+                                        if (val.length <= 30) setUsername(val);
+                                        else setShakeUsername(true);
+                                    }}
+                                    error={!!error && username.trim().length < 5}
+                                    helperText={username && username.trim().length < 5 ? 'Не менее 5 символов' : ''}
+                                    inputProps={{maxLength: 30}}
+                                    sx={shakeUsername ? shakeAnimation : {}}
+                                    onAnimationEnd={() => setShakeUsername(false)}
+                                    fullWidth
+                                />
+                                <TextField
+                                    label="Email"
+                                    value={email}
+                                    onChange={e => setEmail(e.target.value)}
+                                    fullWidth
+                                />
+                                <TextField
+                                    label="Пароль"
+                                    type="password"
+                                    value={password}
+                                    onChange={e => {
+                                        const val = e.target.value;
+                                        if (val.length <= 255) setPassword(val);
+                                        else setShakePassword(true);
+                                    }}
+                                    error={!!error && password.length > 0 && password.length < 8}
+                                    helperText={password && password.length < 8 ? 'Не менее 8 символов' : ''}
+                                    inputProps={{maxLength: 255}}
+                                    sx={shakePassword ? shakeAnimation : {}}
+                                    onAnimationEnd={() => setShakePassword(false)}
+                                    fullWidth
+                                />
+                                <TextField
+                                    label="Подтвердите пароль"
+                                    type="password"
+                                    value={passwordConfirm}
+                                    onChange={e => setPasswordConfirm(e.target.value)}
+                                    inputProps={{maxLength: 255}}
+                                    fullWidth
+                                />
+                                {error && (
+                                    <Box sx={{
+                                        border: '1px solid #d32f2f',
+                                        borderRadius: 1,
+                                        p: 1,
+                                        backgroundColor: '#ffebee'
+                                    }}>
+                                        <Typography variant="body2" color="error" align="center">
+                                            {error}
+                                        </Typography>
+                                    </Box>
+                                )}
+                                <Button type="submit" variant="contained" fullWidth disabled={isSubmitting}>
+                                    {isSubmitting ? 'Регистрация...' : 'Зарегистрироваться'}
+                                </Button>
+                            </Stack>
+                        </Box>
+                    </>
+                ) : (
+                    <ConfirmEmail
+                        email={registeredEmail}
+                        confirmCode={confirmCode}
+                        setConfirmCode={setConfirmCode}
+                        onConfirm={handleConfirm}
+                        onResend={handleResend}
+                        isConfirming={isConfirming}
+                        error={error}
+                    />
+                )}
+                {!showConfirm && (
+                    <>
+                        <Divider sx={{my: 3}}/>
+                        <Box textAlign="center">
+                            <Typography variant="body2">
+                                Уже есть аккаунт?{' '}
+                                <Button size="small" onClick={() => navigate('/login')}>
+                                    Войти
+                                </Button>
+                            </Typography>
+                        </Box>
+                    </>
+                )}
             </Paper>
         </Container>
     );

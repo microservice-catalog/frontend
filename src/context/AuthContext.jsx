@@ -7,12 +7,11 @@ const AuthContext = createContext();
 export const AuthProvider = ({children}) => {
     const [user, setUser] = useState(null);
     const [authLoading, setAuthLoading] = useState(true);
-    const [isAuthenticated, setAuthenticated] = useState(true);
+    const [isAuthenticated, setAuthenticated] = useState(false);
 
     // Fetch current user using /users/me
     const fetchUser = async () => {
         setAuthLoading(true);
-        alert("setLoading(true);")
         try {
             const response = await userApi.getMe();
             setUser(response.data);
@@ -21,7 +20,6 @@ export const AuthProvider = ({children}) => {
             setUser(null);
             setAuthenticated(false);
         } finally {
-            alert(" finally {")
             setAuthLoading(false);
         }
     };
