@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React from 'react';
 import {Link} from 'react-router-dom';
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
@@ -33,7 +33,8 @@ function HeaderView({username, avatarUrl, isAuthenticated, onLogout}) {
                             Выйти
                         </Button>
                         <Box sx={{ flexGrow: 1 }} />
-                        <ProfileButtons avatarUrl={avatarUrl} username={username}></ProfileButtons>
+                        <ProfileButtons avatarUrl={avatarUrl} username={username}
+                                        onLogout={onLogout}></ProfileButtons>
                     </>
                 ) : (
                     <>

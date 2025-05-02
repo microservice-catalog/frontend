@@ -9,14 +9,12 @@ import React, {useEffect, useState} from "react";
 // Абстрактный URL для дефолтной аватарки
 const DEFAULT_AVATAR_URL = '/vite.svg';
 
-function ProfileButtons({username="user", avatarUrl}) {
+function ProfileButtons({username = "user", avatarUrl, onLogout}) {
     const [anchorEl, setAnchorEl] = useState(null);
-    const avatarSx = { ml: 1, mr: 1, p: 1 };
     const [imgSrc, setImgSrc] = useState(avatarUrl || DEFAULT_AVATAR_URL);
     const [loading, setLoading] = useState(!!avatarUrl);
 
     useEffect(() => {
-        alert("ava " + avatarUrl )
         if (!avatarUrl) {
             setImgSrc(DEFAULT_AVATAR_URL);
             setLoading(false);
@@ -41,6 +39,7 @@ function ProfileButtons({username="user", avatarUrl}) {
     const handleMenuClose = () => {
         setAnchorEl(null);
     };
+    const avatarSx = {ml: 1, mr: 1, p: 1};
     return (
         <div>
             {/* Аватарка с skeleton-плейсхолдером */}
@@ -58,13 +57,13 @@ function ProfileButtons({username="user", avatarUrl}) {
                 open={Boolean(anchorEl)}
                 onClose={handleMenuClose}
             >
-                <MenuItem component={Link} to="/dashboard" onClick={handleMenuClose}>
+                <MenuItem component={Link} to="/profile" onClick={handleMenuClose}>
                     Личный кабинет
                 </MenuItem>
                 <MenuItem component={Link} to="/catalog" onClick={handleMenuClose}>
                     Каталог
                 </MenuItem>
-                <MenuItem component={Link} to="/service/new" onClick={handleMenuClose}>
+                <MenuItem component={Link} to="/projects" onClick={handleMenuClose}>
                     Создать сервис
                 </MenuItem>
                 <MenuItem

@@ -4,13 +4,13 @@ import HeaderView from './HeaderView';
 import {useAuth} from "../context/AuthContext.jsx";
 
 function HeaderContainer() {
-    const { user, logout } = useAuth();
+    const {user, logout, isAuthenticated} = useAuth();
 
     return (
         <HeaderView
-            avatarUrl={user == null ? undefined : user.avatarUrl}
-            username={user == null ? null : user.username}
-            isAuthenticated={!(user == null)}
+            avatarUrl={!isAuthenticated ? undefined : user.avatarUrl}
+            username={!isAuthenticated ? undefined : user.username}
+            isAuthenticated={isAuthenticated}
             onLogout={() => logout()}
         />
     );

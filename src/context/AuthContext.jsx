@@ -1,10 +1,11 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import React, {createContext, useContext, useEffect, useState} from 'react';
 import {authApi, userApi} from "../api/api.jsx";
 
 const AuthContext = createContext();
 
 // Provider component
-export const AuthProvider = ({ children }) => {
+export const AuthProvider = ({children}) => {
+    const [isAuthenticated, setAuthenticated] = useState(false);
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
 
@@ -13,8 +14,10 @@ export const AuthProvider = ({ children }) => {
         try {
             const response = await userApi.getMe();
             setUser(response.data);
+            setAuthenticated(true);
         } catch (error) {
             setUser(null);
+            setAuthenticated(false);
         } finally {
             setLoading(false);
         }
@@ -27,20 +30,28 @@ export const AuthProvider = ({ children }) => {
     // Login: posts credentials, server sets cookie, then fetch user data
     const login = async (username, password) => {
         setLoading(true);
-        await authApi.login({"username": username, "password": password});
-        await fetchUser();
+        try {
+            await authApi.login({"username": username, "password": password});
+            await fetchUser();
+        } finally {
+            setLoading(false);
+        }
     };
 
     // Logout: clears server session/cookie, then reset client state
     const logout = async () => {
         setLoading(true);
-        await authApi.logout();
+        try {
+            await authApi.logout();
+        } catch (ignored) {
+        }
+        setAuthenticated(false);
         setUser(null);
         setLoading(false);
     };
 
     return (
-        <AuthContext.Provider value={{ user, loading, login, logout }}>
+        <AuthContext.Provider value={{user, loading, login, logout, isAuthenticated}}>
             {children}
         </AuthContext.Provider>
     );
