@@ -1,7 +1,7 @@
 // src/pages/Login/LoginPageContainer.jsx
 import React, {useState} from 'react';
 import {useNavigate} from 'react-router-dom';
-import {Box, Button, Container, Divider, Paper, Stack, TextField, Typography} from '@mui/material';
+import {Box, Button, Container, Paper, Stack, TextField, Typography} from '@mui/material';
 import {useAuth} from '../../context/AuthContext.jsx';
 
 function LoginPageContainer() {
@@ -77,17 +77,6 @@ function LoginPageContainer() {
                             Войти
                         </Button>
                     </Stack>
-                </Box>
-
-                <Divider sx={{my: 3}}/>
-
-                <Box>
-                    <Typography variant="caption" color="textSecondary">
-                        Текущий пользователь:
-                    </Typography>
-                    <Typography variant="body2" component="pre" sx={{whiteSpace: 'pre-wrap', m: 0}}>
-                        {user ? JSON.stringify(user, null, 2) : 'пользователь не залогинен'}
-                    </Typography>
                 </Box>
             </Paper>
         </Container>

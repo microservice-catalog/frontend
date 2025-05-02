@@ -8,8 +8,8 @@ function HeaderContainer() {
 
     return (
         <HeaderView
-            avatarUrl={undefined}
-            username={undefined}
+            avatarUrl={isAuthenticated ? user.avatarUrl : undefined}
+            username={isAuthenticated ? user.username : undefined}
             isAuthenticated={isAuthenticated}
             onLogout={() => logout()}
             loading={loading}

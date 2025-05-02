@@ -5,24 +5,12 @@ import {Avatar, Box, Button, IconButton, Menu, MenuItem, Skeleton, Stack} from "
 const DEFAULT_AVATAR_URL = '/vite.svg';
 
 function ProfileView({isAuthenticated, avatarUrl, onLogout}) {
-    // После загрузки — если не авторизован, показываем две кнопки
-    if (!isAuthenticated) {
-        return (
-            <Stack direction="row" spacing={1}>
-                <Button color="inherit" component={Link} to="/login">
-                    Войти
-                </Button>
-                <Button color="inherit" component={Link} to="/register">
-                    Регистрация
-                </Button>
-            </Stack>
-        );
-    }
-
-    // Авторизован — подгружаем и показываем аватар + меню
+    // ⚠️ Hooks must always run — move them above any conditional return:
     const [anchorEl, setAnchorEl] = useState(null);
     const [imgSrc, setImgSrc] = useState(avatarUrl || DEFAULT_AVATAR_URL);
     const [avatarLoading, setAvatarLoading] = useState(!!avatarUrl);
+    const handleAvatarClick = (e) => setAnchorEl(e.currentTarget);
+    const handleMenuClose = () => setAnchorEl(null);
 
     useEffect(() => {
         if (!avatarUrl) {
@@ -43,15 +31,26 @@ function ProfileView({isAuthenticated, avatarUrl, onLogout}) {
         };
     }, [avatarUrl]);
 
-    const handleAvatarClick = (e) => setAnchorEl(e.currentTarget);
-    const handleMenuClose = () => setAnchorEl(null);
+    // Теперь, after your hooks, you can safely branch:
+    if (!isAuthenticated) {
+        return (
+            <Stack direction="row" spacing={1}>
+                <Button color="inherit" component={Link} to="/login">
+                    Войти
+                </Button>
+                <Button color="inherit" component={Link} to="/register">
+                    Регистрация
+                </Button>
+            </Stack>
+        );
+    }
 
+    // — and here’s the authenticated UI:
     const avatarSx = {ml: 1, mr: 1, p: 1};
-
     return (
         <Box>
             {avatarLoading ? (
-                <Skeleton variant="circular" sx={avatarSx} width={40} height={40} />
+                <Skeleton variant="circular" sx={avatarSx} width={40} height={40}/>
             ) : (
                 <IconButton onClick={handleAvatarClick} sx={avatarSx}>
                     <Avatar src={imgSrc} alt={"userAvatar"}/>
@@ -73,6 +72,7 @@ function ProfileView({isAuthenticated, avatarUrl, onLogout}) {
                         onLogout();
                         handleMenuClose();
                     }}
+                    component={Link} to="/login"
                 >
                     Выйти
                 </MenuItem>
