@@ -6,6 +6,7 @@ import HeaderContainer from "./components/header/HeaderContainer.jsx";
 import RegisterPageContainer from "./pages/register/RegisterPageContainer.jsx";
 import ProfilePageContainer from "./pages/profile/ProfilePageContainer.jsx";
 import HomePageContainer from "./pages/home/HomePageContainer.jsx";
+import ProjectPageContainer from "./pages/project/ProjectPageContainer.jsx";
 
 
 function App() {
@@ -29,6 +30,10 @@ function App() {
                     <Route
                         path="/profile"
                         element={<ProfilePageContainer/>}
+                    />
+                    <Route
+                        path="/projects/:username/:projectName"
+                        element={<ProjectPageContainer/>}
                     />
                 </Routes>
             </HeaderContainer>

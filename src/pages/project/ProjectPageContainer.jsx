@@ -15,9 +15,11 @@ import {
 import ReactMarkdown from 'react-markdown';
 import {projectApi} from '../../api/api.jsx';
 import EditDescriptionDialog from '../../components/projects/EditDescriptionDialog.jsx';
+import {useParams} from "react-router-dom";
 
 export default function ProjectPageContainer() {
     const {username, projectName} = useParams();
+    const [projectVersion, setProjectVersion] = useState(null);
     const [project, setProject] = useState(null);
     const [versions, setVersions] = useState([]);
     const [selectedVer, setSelectedVer] = useState('');
@@ -27,12 +29,18 @@ export default function ProjectPageContainer() {
     useEffect(() => {
         const load = async () => {
             setLoading(true);
-            const list = await projectApi.getAllVersions(username, projectName);
-            setVersions(list.data.versions);
-            setSelectedVer(list.data.defaultVersionName);
 
-            const detail = await projectApi.getProjectVersion(username, projectName, list.data.defaultVersionName);
-            setProject(detail.data);
+            const projectResponse = await projectApi.getProject(username, projectName)
+            setProject(projectResponse.data)
+
+            const projectVerrsionResponse = await projectApi.getAllVersions(username, projectName);
+            const list = projectVerrsionResponse.data;
+            setVersions(list.versions);
+            setSelectedVer(list.defaultVersionName);
+
+            const detail = await projectApi.getProjectVersion(username, projectName, list.defaultVersionName);
+            setProjectVersion(detail.data);
+
             setLoading(false);
         };
         load();
@@ -42,11 +50,11 @@ export default function ProjectPageContainer() {
         setSelectedVer(newVer);
         setLoading(true);
         const detail = await projectApi.getProjectVersion(username, projectName, newVer);
-        setProject(detail.data);
+        setProjectVersion(detail.data);
         setLoading(false);
     };
 
-    if (loading || !project) {
+    if (loading || !projectVersion) {
         return <Box textAlign="center" mt={4}><CircularProgress/></Box>;
     }
 
@@ -87,21 +95,25 @@ export default function ProjectPageContainer() {
             </Box>
 
             {/* Теги */}
-            <Box mb={3}>
-                {project.tags.map(tag => <Chip key={tag} label={tag} sx={{mr: 1}}/>)}
-            </Box>
+            {
+                !!project.tags ?
+                    <Box mb={3}>
+                        {project.tags.map(tag => <Chip key={tag} label={tag} sx={{mr: 1}}/>)}
+                    </Box>
+                    : <Box mb={3}>asd</Box>
+            }
 
             {/* Docker / GitHub */}
             <Stack direction="row" spacing={2} mb={3}>
-                <Button href={project.githubLink} target="_blank">GitHub</Button>
-                <Button href={project.dockerHubLink} target="_blank">Docker Hub</Button>
+                <Button href={projectVersion.githubLink} target="_blank">GitHub</Button>
+                <Button href={projectVersion.dockerHubLink} target="_blank">Docker Hub</Button>
             </Stack>
 
             {/* Команда */}
             <Box mb={3}>
                 <Typography variant="subtitle1">Run Command</Typography>
                 <Box component="pre" sx={{background: '#f5f5f5', p: 2, borderRadius: 1}}>
-                    {project.dockerCommand}
+                    {projectVersion.dockerCommand}
                 </Box>
             </Box>
 
@@ -109,7 +121,7 @@ export default function ProjectPageContainer() {
             <Box mb={3}>
                 <Typography variant="subtitle1">Environment Parameters</Typography>
                 <Grid container spacing={2} mt={1}>
-                    {project.envParameters.map(p => (
+                    {projectVersion.envParameters.map(p => (
                         <Grid key={p.name} item xs={12} sm={6} md={4}>
                             <Box sx={{p: 2, border: '1px solid #eee', borderRadius: 1}}>
                                 <Typography><b>{p.name}</b> {p.required && '(required)'}</Typography>
@@ -126,7 +138,7 @@ export default function ProjectPageContainer() {
                 onClose={() => setEditDescOpen(false)}
                 onSave={async (newDesc) => {
                     await projectApi.updateProject(username, projectName, {description: newDesc});
-                    setProject(p => ({...p, description: newDesc}));
+                    setProjectVersion(p => ({...p, description: newDesc}));
                     setEditDescOpen(false);
                 }}
             />

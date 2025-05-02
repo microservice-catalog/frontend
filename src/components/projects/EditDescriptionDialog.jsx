@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField} from '@mui/material';
+import {Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField, Typography} from '@mui/material';
 import ReactMarkdown from 'react-markdown';
 
 export default function EditDescriptionDialog({open, initialValue, onClose, onSave}) {

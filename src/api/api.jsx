@@ -62,27 +62,34 @@ export const projectApi = {
         }),
 
     // Получить конкретный проект по user и projectName
-    getProjectVersion: (userName, projectName, versionName, page = 0, limit = 20) =>
-        axiosInstance.get(PROJECT_URL(userName, projectName, versionName), {params: {page, limit}}),
+    getProject: (username, projectName) =>
+        axiosInstance.get(PROJECT_URL(username, projectName)),
+
+    // Получить конкретный проект по user и projectName
+    getProjectVersion: (username, projectName, versionName) =>
+        axiosInstance.get(PROJECT_URL(username, projectName, versionName)),
+
+
+    getAllVersions: (username, projectName) =>
+        axiosInstance.get(PROJECT_URL(username, projectName) + "/versions"),
 
     // Обновить проект.
-// Параметры data — объект с полями, которые нужно изменить
-    updateProject: (userName, projectName, data) =>
-        axiosInstance.put(PROJECT_URL(userName, projectName), data),
+    updateProject: (username, projectName, data) =>
+        axiosInstance.patch(PROJECT_URL(username, projectName), data),
 
     // Удалить проект
-    deleteProject: (userName, projectName) =>
-        axiosInstance.delete(PROJECT_URL(userName, projectName)),
+    deleteProject: (username, projectName) =>
+        axiosInstance.delete(PROJECT_URL(username, projectName)),
 
-    addFavourite: (userName, projectName) =>
-        axiosInstance.put(`${PROJECT_URL(userName, projectName)}/favourite`),
+    addFavourite: (username, projectName) =>
+        axiosInstance.put(`${PROJECT_URL(username, projectName)}/favourite`),
 
-    removeFavourite: (userName, projectName) =>
-        axiosInstance.delete(`${PROJECT_URL(userName, projectName)}/favourite`),
+    removeFavourite: (username, projectName) =>
+        axiosInstance.delete(`${PROJECT_URL(username, projectName)}/favourite`),
 
-    toggleFavourite: async (userName, projectName, liked) => {
+    toggleFavourite: async (username, projectName, liked) => {
         return liked
-            ? projectApi.removeFavourite(userName, projectName)
-            : projectApi.addFavourite(userName, projectName);
+            ? projectApi.removeFavourite(username, projectName)
+            : projectApi.addFavourite(username, projectName);
     },
 };
