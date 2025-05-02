@@ -12,27 +12,26 @@ function App() {
 
     return (
         <div className="app-container">
-            <HeaderContainer/>
-
-            <Routes>
-                <Route
-                    path="/"
-                    element={<HomePageContainer/>}
-                />
-                <Route
-                    path="/login"
-                    element={<LoginPageContainer/>}
-                />
-                <Route
-                    path="/register"
-                    element={<RegisterPageContainer/>}
-                />
-                <Route
-                    path="/profile"
-                    element={<ProfilePageContainer/>}
-                />
-            </Routes>
-
+            <HeaderContainer>
+                <Routes>
+                    <Route
+                        path="/"
+                        element={<HomePageContainer/>}
+                    />
+                    <Route
+                        path="/login"
+                        element={<LoginPageContainer/>}
+                    />
+                    <Route
+                        path="/register"
+                        element={<RegisterPageContainer/>}
+                    />
+                    <Route
+                        path="/profile"
+                        element={<ProfilePageContainer/>}
+                    />
+                </Routes>
+            </HeaderContainer>
         </div>
     );
 }

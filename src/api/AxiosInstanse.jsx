@@ -24,8 +24,8 @@ export const API_URLS = {
     LOGOUT: `${CORE_BASE_URL}/auth/logout`
 };
 
-export const PROJECT_URL = (userName, projectName) => {
-    return `${API_URLS.PROJECTS}/${userName}/${projectName}`
+export const PROJECT_URL = (userName, projectName, versionName = "") => {
+    return `${API_URLS.PROJECTS}/${userName}/${projectName}${!!versionName ? ('/' + versionName) : ""}`
 };
 
 // Создаем axios экземпляр

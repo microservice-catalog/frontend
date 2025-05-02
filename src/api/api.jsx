@@ -51,13 +51,19 @@ export const projectApi = {
         axiosInstance.get(API_URLS.PROJECTS, {params: {page, limit}}),
 
     // Создать новый проект.
-// Параметры: { name, description, ... }
     createProject: (data) =>
         axiosInstance.post(API_URLS.PROJECTS, data),
 
+    getProjects: ({page = 0, limit = 20, query, tags} = {}) =>
+        axiosInstance.get(API_URLS.PROJECTS, {
+            params: {
+                page, limit, q: query, t: tags
+            }
+        }),
+
     // Получить конкретный проект по user и projectName
-    getProject: (userName, projectName, page = 0, limit = 20) =>
-        axiosInstance.get(PROJECT_URL(userName, projectName)),
+    getProjectVersion: (userName, projectName, versionName, page = 0, limit = 20) =>
+        axiosInstance.get(PROJECT_URL(userName, projectName, versionName), {params: {page, limit}}),
 
     // Обновить проект.
 // Параметры data — объект с полями, которые нужно изменить

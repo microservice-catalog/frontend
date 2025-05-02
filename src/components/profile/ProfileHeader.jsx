@@ -3,8 +3,6 @@ import {Avatar, Box, Button, Stack, Typography} from '@mui/material';
 
 export default function ProfileHeader({profile, onEdit}) {
     const {username, fullName, description, avatarUrl, favouritesCount, viewsCount, likesCount} = profile;
-    console.log(username);
-    console.log(fullName);
     return (
         <Box display="flex" alignItems="center" mb={4}>
             <Avatar src={avatarUrl} alt={"User Avatar"} sx={{width: 80, height: 80, mr: 3}}/>

@@ -27,7 +27,6 @@ export const AuthProvider = ({children}) => {
     useEffect(() => {
         setAuthLoading(true);
         fetchUser();
-        console.log(JSON.stringify(user));
         setAuthLoading(false);
     }, []);
 
