@@ -92,4 +92,13 @@ export const projectApi = {
             ? projectApi.removeFavourite(username, projectName)
             : projectApi.addFavourite(username, projectName);
     },
+
+    addEnvParam: (username, projectName, version, dto) =>
+        axiosInstance.post(`${PROJECT_URL(username, projectName, version)}/env`, dto),
+
+    updateEnvParam: (username, projectName, version, name, dto) =>
+        axiosInstance.patch(`${PROJECT_URL(username, projectName, version)}/env/${name}`, dto),
+
+    deleteEnvParam: (username, projectName, version, name) =>
+        axiosInstance.delete(`${PROJECT_URL(username, projectName, version)}/env/${name}`),
 };

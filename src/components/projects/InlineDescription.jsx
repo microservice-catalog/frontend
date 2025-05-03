@@ -1,6 +1,5 @@
-// src/components/projects/InlineDescription.jsx
 import React, {useState} from 'react';
-import {Box, Button, TextField} from '@mui/material';
+import {Box, Button, TextField, Typography} from '@mui/material';
 import ReactMarkdown from 'react-markdown';
 
 export default function InlineDescription({value, onSave}) {
@@ -12,10 +11,22 @@ export default function InlineDescription({value, onSave}) {
         setEditMode(false);
     };
 
+    // Если onSave нет — только превью
+    if (!onSave) {
+        return (
+            <Box mb={3}>
+                <Typography variant="h6" mb={1}>Описание</Typography>
+                <Box sx={{border: '1px solid #ddd', p: 2, borderRadius: 1}}>
+                    <ReactMarkdown>{value || '_No description_'}</ReactMarkdown>
+                </Box>
+            </Box>
+        );
+    }
+
     return (
         <Box mb={3}>
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
-                <Box component="h6" sx={{m: 0, fontSize: '1.25rem'}}>Description</Box>
+                <Typography variant="h6">Описание</Typography>
                 <Button size="small" onClick={() => setEditMode(!editMode)}>
                     {editMode ? 'Preview' : 'Edit'}
                 </Button>
@@ -31,9 +42,7 @@ export default function InlineDescription({value, onSave}) {
                         onChange={e => setDraft(e.target.value)}
                     />
                     <Box mt={1}>
-                        <Button variant="contained" size="small" onClick={handleSave}>
-                            Save
-                        </Button>
+                        <Button variant="contained" size="small" onClick={handleSave}>Save</Button>
                     </Box>
                     <Box mt={2}
                          sx={{border: '1px solid #ddd', p: 2, borderRadius: 1, maxHeight: 200, overflow: 'auto'}}>

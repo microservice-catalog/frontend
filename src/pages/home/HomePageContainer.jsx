@@ -10,7 +10,7 @@ export default function HomePageContainer() {
     const [projects, setProjects] = useState([]);
     const [page, setPage] = useState(1);
     const [total, setTotal] = useState(0);
-    const [limit] = useState(20);
+    const limit = 20;
     const [loading, setLoading] = useState(true);
 
     const load = async () => {
@@ -35,6 +35,28 @@ export default function HomePageContainer() {
         load();
     }, [search, filterTags, page]);
 
+    // Toggle like handler
+    const handleToggleLike = async (projectName, currentlyLiked) => {
+        try {
+            await projectApi.toggleFavourite(/* authorUsername */ projects.find(p => p.projectName === projectName).authorUsername,
+                projectName,
+                currentlyLiked);
+            setProjects(prev =>
+                prev.map(p =>
+                    p.projectName === projectName
+                        ? {
+                            ...p,
+                            likedByMe: !currentlyLiked,
+                            likesCount: currentlyLiked ? p.likesCount - 1 : p.likesCount + 1
+                        }
+                        : p
+                )
+            );
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
     if (loading) {
         return <Box textAlign="center" mt={4}><CircularProgress/></Box>;
     }
@@ -48,7 +70,11 @@ export default function HomePageContainer() {
             <Grid container spacing={3}>
                 {projects.map(p => (
                     <Grid item xs={12} sm={6} md={4} key={p.projectName}>
-                        <ProjectCard project={p} username={p.authorUsername}/>
+                        <ProjectCard
+                            project={p}
+                            username={p.authorUsername}
+                            onToggleLike={handleToggleLike}
+                        />
                     </Grid>
                 ))}
             </Grid>

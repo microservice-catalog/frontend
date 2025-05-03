@@ -1,9 +1,10 @@
 // src/components/profile/PublicProjectCard.jsx
 import React from 'react';
-import {Button, Card, CardActions, CardContent, Chip, IconButton, Stack, Typography,} from '@mui/material';
+import {Button, Card, CardActions, CardContent, Chip, IconButton, Stack, Typography} from '@mui/material';
 import {Favorite, FavoriteBorder} from '@mui/icons-material';
+import CloudDownloadIcon from '@mui/icons-material/CloudDownload';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import {Link} from 'react-router-dom';
-import {projectApi} from '../../api/api.jsx';
 
 export default function PublicProjectCard({project, onToggleLike}) {
     const {
@@ -14,12 +15,11 @@ export default function PublicProjectCard({project, onToggleLike}) {
         downloadsCount,
         viewsCount,
         likedByMe,
-        authorUsername,
+        authorUsername
     } = project;
 
-    const handleLike = async () => {
-        await projectApi.toggleFavourite(authorUsername, projectName, likedByMe);
-        onToggleLike(projectName);
+    const handleLike = () => {
+        onToggleLike(projectName, likedByMe);
     };
 
     return (
@@ -39,26 +39,34 @@ export default function PublicProjectCard({project, onToggleLike}) {
                 </Typography>
                 {tags?.length > 0 && (
                     <Stack direction="row" spacing={1} mt={1} flexWrap="wrap">
-                        {tags.map((tag) => (
+                        {tags.map(tag => (
                             <Chip key={tag} label={tag} size="small" color="secondary"/>
                         ))}
                     </Stack>
                 )}
-                <Stack direction="row" spacing={1} mt={2} alignItems="center">
-                    <IconButton onClick={handleLike} color={likedByMe ? 'error' : 'default'}>
-                        {likedByMe ? <Favorite/> : <FavoriteBorder/>}
-                    </IconButton>
-                    <Typography variant="caption" color="text.primary">
-                        {likesCount}
-                    </Typography>
-                    <Typography variant="caption" color="text.primary">
-                        ⬇️ {downloadsCount}
-                    </Typography>
-                    <Typography variant="caption" color="text.primary">
-                        👁️ {viewsCount}
-                    </Typography>
+
+                {/* Новый Stack со статистикой и кликабельным сердечком */}
+                <Stack direction="row" spacing={2} mt={2} alignItems="center">
+                    {/* Like */}
+                    <Stack direction="row" spacing={0.5} alignItems="center">
+                        <IconButton onClick={handleLike} color={likedByMe ? 'error' : 'default'} size="small">
+                            {likedByMe ? <Favorite/> : <FavoriteBorder/>}
+                        </IconButton>
+                        <Typography variant="caption">{likesCount}</Typography>
+                    </Stack>
+                    {/* Downloads */}
+                    <Stack direction="row" spacing={0.5} alignItems="center">
+                        <CloudDownloadIcon fontSize="small" color="action"/>
+                        <Typography variant="caption">{downloadsCount}</Typography>
+                    </Stack>
+                    {/* Views */}
+                    <Stack direction="row" spacing={0.5} alignItems="center">
+                        <VisibilityIcon fontSize="small" color="action"/>
+                        <Typography variant="caption">{viewsCount}</Typography>
+                    </Stack>
                 </Stack>
             </CardContent>
+
             <CardActions>
                 <Button
                     size="small"
