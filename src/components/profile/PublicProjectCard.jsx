@@ -1,6 +1,6 @@
 // src/components/profile/PublicProjectCard.jsx
 import React from 'react';
-import {Button, Card, CardActions, CardContent, Chip, IconButton, Stack, Typography} from '@mui/material';
+import {Box, Button, Card, CardActions, CardContent, Chip, IconButton, Stack, Typography} from '@mui/material';
 import {Favorite, FavoriteBorder} from '@mui/icons-material';
 import CloudDownloadIcon from '@mui/icons-material/CloudDownload';
 import VisibilityIcon from '@mui/icons-material/Visibility';
@@ -10,7 +10,7 @@ export default function PublicProjectCard({project, onToggleLike}) {
     const {
         projectName,
         title,
-        tags,
+        tags = [],
         likesCount,
         downloadsCount,
         viewsCount,
@@ -22,56 +22,99 @@ export default function PublicProjectCard({project, onToggleLike}) {
         onToggleLike(projectName, likedByMe);
     };
 
+    // Показываем не более 3 тегов, остальные считаем скрытыми
+    const MAX_VISIBLE_TAGS = 3;
+    const visibleTags = tags.slice(0, MAX_VISIBLE_TAGS);
+    const hiddenCount = tags.length - visibleTags.length;
+
     return (
-        <Card elevation={2}>
-            <CardContent sx={{pb: 0}}>
-                <Typography
-                    variant="h6"
-                    color="primary"
-                    component={Link}
-                    to={`/projects/${authorUsername}/${projectName}`}
-                    sx={{textDecoration: 'none'}}
-                >
-                    {title}
-                </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{mb: 1}}>
-                    {projectName}
-                </Typography>
-                {tags?.length > 0 && (
-                    <Stack direction="row" spacing={1} mt={1} flexWrap="wrap">
-                        {tags.map(tag => (
-                            <Chip key={tag} label={tag} size="small" color="secondary"/>
-                        ))}
-                    </Stack>
+        <Card
+            elevation={1}
+            sx={{
+                borderRadius: 2,
+                boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+                display: 'flex',
+                flexDirection: 'column',
+                height: '100%'
+            }}
+        >
+            <CardContent sx={{flexGrow: 1, p: 2}}>
+                {/* Заголовок и кнопка лайка */}
+                <Box display="flex" justifyContent="space-between" alignItems="flex-start" sx={{p: 1}}>
+                    <Box>
+                        <Typography
+                            variant="h6"
+                            component={Link}
+                            to={`/projects/${authorUsername}/${projectName}`}
+                            sx={{
+                                textDecoration: 'none',
+                                color: 'text.primary',
+                                '&:hover': {color: 'primary.main'}
+                            }}
+                        >
+                            {title}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary" sx={{p: 1}}>
+                            {projectName}
+                        </Typography>
+                    </Box>
+                    <IconButton onClick={handleLike} color={likedByMe ? 'error' : 'default'}>
+                        {likedByMe ? <Favorite/> : <FavoriteBorder/>}
+                    </IconButton>
+                </Box>
+
+                {/* Теги */}
+                {tags.length > 0 && (
+                    <Box mt={1}>
+                        <Stack direction="row" spacing={1} flexWrap="wrap">
+                            {visibleTags.map(tag => (
+                                <Chip
+                                    key={tag}
+                                    label={tag}
+                                    size="small"
+                                    onClick={() => window.location.assign(`/?tag=${encodeURIComponent(tag)}`)}
+                                    sx={{cursor: 'pointer'}}
+                                />
+                            ))}
+                            {hiddenCount > 0 && (
+                                <Chip
+                                    label={`и ещё ${hiddenCount}...`}
+                                    size="small"
+                                    sx={{opacity: 0.6}}
+                                />
+                            )}
+                        </Stack>
+                    </Box>
                 )}
 
-                {/* Новый Stack со статистикой и кликабельным сердечком */}
+                {/* Статистика */}
                 <Stack direction="row" spacing={2} mt={2} alignItems="center">
-                    {/* Like */}
                     <Stack direction="row" spacing={0.5} alignItems="center">
-                        <IconButton onClick={handleLike} color={likedByMe ? 'error' : 'default'} size="small">
-                            {likedByMe ? <Favorite/> : <FavoriteBorder/>}
-                        </IconButton>
-                        <Typography variant="caption">{likesCount}</Typography>
+                        <Favorite fontSize="small" color="action"/>
+                        <Typography variant="caption" color="text.secondary">
+                            {likesCount}
+                        </Typography>
                     </Stack>
-                    {/* Downloads */}
                     <Stack direction="row" spacing={0.5} alignItems="center">
                         <CloudDownloadIcon fontSize="small" color="action"/>
-                        <Typography variant="caption">{downloadsCount}</Typography>
+                        <Typography variant="caption" color="text.secondary">
+                            {downloadsCount}
+                        </Typography>
                     </Stack>
-                    {/* Views */}
                     <Stack direction="row" spacing={0.5} alignItems="center">
                         <VisibilityIcon fontSize="small" color="action"/>
-                        <Typography variant="caption">{viewsCount}</Typography>
+                        <Typography variant="caption" color="text.secondary">
+                            {viewsCount}
+                        </Typography>
                     </Stack>
                 </Stack>
             </CardContent>
 
-            <CardActions>
+            {/* Кнопка открытия */}
+            <CardActions sx={{p: 2}}>
                 <Button
                     size="small"
                     variant="contained"
-                    color="primary"
                     component={Link}
                     to={`/projects/${authorUsername}/${projectName}`}
                 >
