@@ -1,7 +1,10 @@
-// ProfileView.jsx
+// src/components/Header/ProfileView.jsx
 import React, {useEffect, useState} from 'react';
 import {Link} from 'react-router-dom';
-import {Avatar, Box, Button, IconButton, Menu, MenuItem, Skeleton, Stack,} from '@mui/material';
+import {Avatar, Box, Button, IconButton, Menu, MenuItem, Skeleton, Stack, Typography} from '@mui/material';
+import {useAuth} from '../../context/AuthContext.jsx';
+import {useThemeContext} from '../../context/ThemeContext.jsx';
+import ThemeSwitch from '../common/ThemeSwitch.jsx';
 
 const DEFAULT_AVATAR_URL = '/images/default-avatar.png';
 
@@ -27,6 +30,8 @@ function ProfileGuest() {
 }
 
 function ProfileAuth({avatarUrl, onLogout}) {
+    const {mode, toggleMode} = useThemeContext();
+    const {user} = useAuth();
     const [anchorEl, setAnchorEl] = useState(null);
     const [imgSrc, setImgSrc] = useState(avatarUrl || DEFAULT_AVATAR_URL);
     const [avatarLoading, setAvatarLoading] = useState(!!avatarUrl);
@@ -50,14 +55,8 @@ function ProfileAuth({avatarUrl, onLogout}) {
         };
     }, [avatarUrl]);
 
-    const handleAvatarClick = (event) => {
-        setAnchorEl(event.currentTarget);
-    };
-
-    const handleMenuClose = () => {
-        setAnchorEl(null);
-    };
-
+    const handleAvatarClick = (e) => setAnchorEl(e.currentTarget);
+    const handleMenuClose = () => setAnchorEl(null);
     const handleLogout = () => {
         handleMenuClose();
         onLogout();
@@ -83,7 +82,19 @@ function ProfileAuth({avatarUrl, onLogout}) {
                 <MenuItem component={Link} to="/profile" onClick={handleMenuClose}>
                     Профиль
                 </MenuItem>
-                <MenuItem component={Link} to="/login" onClick={handleLogout}>
+
+                {/* Theme toggle */}
+                <MenuItem>
+                    <Stack direction="row" alignItems="center" spacing={1} width="100%">
+                        <Typography variant="body2">
+                            {mode === 'light' ? 'Светлая тема' : 'Тёмная тема'}
+                        </Typography>
+                        <Box sx={{flexGrow: 1}}/>
+                        <ThemeSwitch checked={mode === 'dark'} onChange={toggleMode}/>
+                    </Stack>
+                </MenuItem>
+
+                <MenuItem onClick={handleLogout}>
                     Выйти
                 </MenuItem>
             </Menu>
@@ -91,10 +102,7 @@ function ProfileAuth({avatarUrl, onLogout}) {
     );
 }
 
-export default function ProfileView({isAuthenticated, avatarUrl, onLogout}) {
-    return isAuthenticated ? (
-        <ProfileAuth avatarUrl={avatarUrl} onLogout={onLogout}/>
-    ) : (
-        <ProfileGuest/>
-    );
+export default function ProfileView(isAuthenticated,
+                                    ...props) {
+    return isAuthenticated ? <ProfileAuth {...props} /> : <ProfileGuest/>;
 }

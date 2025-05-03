@@ -67,7 +67,7 @@ export default function VersionTabs({
                         <Box display="flex" alignItems="center" sx={{ml: 2}}>
                             <TextField
                                 size="small"
-                                placeholder="Version name"
+                                placeholder="Название версии"
                                 value={newName}
                                 onChange={e => setNewName(e.target.value)}
                             />

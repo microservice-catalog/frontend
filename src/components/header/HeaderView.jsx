@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 import {Link, useNavigate} from 'react-router-dom';
-import {AppBar, Autocomplete, Box, Button, TextField, Toolbar, Typography} from '@mui/material';
+import {AppBar, Autocomplete, Box, Button, Skeleton, TextField, Toolbar, Typography, useTheme} from '@mui/material';
 import ProfileView from './ProfileView.jsx';
 
 export default function HeaderView({
@@ -17,7 +17,7 @@ export default function HeaderView({
     const [search, setSearch] = useState('');
     const [tags, setTags] = useState([]);
     const navigate = useNavigate();
-
+    const theme = useTheme();
     const handleSearch = (e) => {
         setSearch(e.target.value);
         onSearchChange?.(e.target.value);
@@ -29,7 +29,28 @@ export default function HeaderView({
     };
 
     if (loading) {
-        return null; // или skeleton, как было раньше
+        return (
+            <AppBar position="static">
+                <Toolbar>
+                    <Skeleton variant="text" width={100} height={40}/> {/* Logo */}
+                    <Box sx={{ml: 2, width: 600}}>
+                        <Skeleton variant="rectangular" width="100%" height={40}/> {/* Search */}
+                    </Box>
+                    <Box sx={{ml: 2, width: 200}}>
+                        <Skeleton variant="rectangular" width="100%" height={40}/> {/* Tags */}
+                    </Box>
+                    <Box sx={{flexGrow: 1}}/>
+                    {isAuthenticated && (
+                        <Box sx={{ml: 2}}>
+                            <Skeleton variant="rectangular" width={120} height={36}/> {/* Button */}
+                        </Box>
+                    )}
+                    <Box sx={{ml: 2}}>
+                        <Skeleton variant="circular" width={40} height={40}/> {/* Avatar */}
+                    </Box>
+                </Toolbar>
+            </AppBar>
+        );
     }
 
     return (
@@ -39,17 +60,20 @@ export default function HeaderView({
                     variant="h6"
                     component={Link}
                     to="/"
-                    sx={{color: 'inherit', textDecoration: 'none'}}
+                    sx={{
+                        flexGrow: 1,
+                        color: theme.palette.text.primary,
+                    }}
                 >
                     Dockins
                 </Typography>
 
                 <TextField
                     size="small"
-                    placeholder="Search…"
+                    placeholder="Поиск…"
                     value={search}
                     onChange={handleSearch}
-                    sx={{ml: 2, width: 200}}
+                    sx={{ml: 2, width: 600}}
                 />
 
                 <Autocomplete
@@ -59,12 +83,10 @@ export default function HeaderView({
                     value={tags}
                     onChange={handleTags}
                     sx={{ml: 2, width: 200}}
-                    renderInput={(params) => (
-                        <TextField {...params} placeholder="Tags"/>
-                    )}
+                    renderInput={(params) => <TextField {...params} placeholder="Теги..."/>}
                 />
 
-                <Box sx={{flexGrow: 1}}/>
+                <Box sx={{flexGrow: 1, ml: 2}}/>
 
                 {isAuthenticated && (
                     <>

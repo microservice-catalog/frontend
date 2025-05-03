@@ -56,13 +56,13 @@ function LoginPageContainer() {
                         {/* Ошибка в отдельной рамочке */}
                         {error && (
                             <Box
-                                sx={{
-                                    border: '1px solid #d32f2f',
+                                sx={theme => ({
+                                    border: `1px solid ${theme.palette.error.main}`,
                                     borderRadius: 1,
                                     p: 1,
-                                    backgroundColor: '#ffebee',
+                                    backgroundColor: theme.palette.error.light,
                                     mt: 1
-                                }}
+                                })}
                             >
                                 <Typography variant="body2" color="error" align="center">
                                     {error}

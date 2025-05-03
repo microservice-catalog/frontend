@@ -102,7 +102,7 @@ export default function EnvParamsTable({
                                 <TableCell>
                                     <TextField
                                         size="small"
-                                        placeholder="Name"
+                                        placeholder="Название"
                                         value={draft.name}
                                         onChange={e => setDraft(d => ({...d, name: e.target.value}))}
                                     />
@@ -110,7 +110,7 @@ export default function EnvParamsTable({
                                 <TableCell>
                                     <TextField
                                         size="small"
-                                        placeholder="Default"
+                                        placeholder="Значение по умолчанию"
                                         value={draft.defaultValue}
                                         onChange={e => setDraft(d => ({...d, defaultValue: e.target.value}))}
                                     />

@@ -21,7 +21,13 @@ export default function EditDescriptionDialog({open, initialValue, onClose, onSa
                 />
                 <Box mt={3}>
                     <Typography variant="subtitle1">Preview</Typography>
-                    <Box sx={{border: '1px solid #ddd', p: 2, borderRadius: 1, maxHeight: 300, overflow: 'auto'}}>
+                    <Box sx={theme => ({
+                        border: `1px solid ${theme.palette.divider}`,
+                        p: 2,
+                        borderRadius: 1,
+                        maxHeight: 300,
+                        overflow: 'auto'
+                    })}>
                         <ReactMarkdown>{value}</ReactMarkdown>
                     </Box>
                 </Box>

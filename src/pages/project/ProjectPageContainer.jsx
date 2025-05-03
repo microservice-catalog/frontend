@@ -14,7 +14,8 @@ import {
     Divider,
     IconButton,
     Stack,
-    Typography
+    Typography,
+    useTheme
 } from '@mui/material';
 import {ContentCopy} from '@mui/icons-material';
 import {useNavigate, useParams} from 'react-router-dom';
@@ -28,6 +29,7 @@ import CloudDownloadIcon from "@mui/icons-material/CloudDownload";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 
 export default function ProjectPageContainer() {
+    const theme = useTheme();
     const {username, projectName} = useParams();
     const navigate = useNavigate();
     const {user, isAuthenticated} = useAuth();
@@ -188,17 +190,23 @@ export default function ProjectPageContainer() {
             </Box>
 
             {/* Stats */}
-            <Stack direction="row" spacing={4} alignItems="center" mb={2}>
+            <Stack
+                direction="row"
+                spacing={4}
+                alignItems="center"
+                mb={2}
+                sx={{color: theme.palette.text.secondary}}
+            >
                 <Stack direction="row" spacing={1} alignItems="center">
-                    <ThumbUpIcon fontSize="small" color="action"/>
+                    <ThumbUpIcon fontSize="small" color="inherit"/>
                     <Typography variant="body2">{project.likesCount}</Typography>
                 </Stack>
                 <Stack direction="row" spacing={1} alignItems="center">
-                    <CloudDownloadIcon fontSize="small" color="action"/>
+                    <CloudDownloadIcon fontSize="small" color="inherit"/>
                     <Typography variant="body2">{project.downloadsCount}</Typography>
                 </Stack>
                 <Stack direction="row" spacing={1} alignItems="center">
-                    <VisibilityIcon fontSize="small" color="action"/>
+                    <VisibilityIcon fontSize="small" color="inherit"/>
                     <Typography variant="body2">{project.viewsCount}</Typography>
                 </Stack>
             </Stack>
@@ -243,7 +251,11 @@ export default function ProjectPageContainer() {
                 (!!(version.dockerCommand) && !!(version.dockerCommand.trim())) ?
                     <Box mb={3} position="relative">
                         <Typography variant="subtitle1" gutterBottom>Run Command</Typography>
-                        <Box component="pre" sx={{background: '#f5f5f5', p: 2, borderRadius: 1}}>
+                        <Box component="pre" sx={theme => ({
+                            backgroundColor: theme.palette.background.default,
+                            p: 2,
+                            borderRadius: 1,
+                        })}>
                             {version.dockerCommand}
                             <IconButton
                                 onClick={handleCopy}
