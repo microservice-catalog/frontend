@@ -39,7 +39,7 @@ export default function HeaderContainer({children}) {
     const onProjectCreated = (dto) => {
         setCreateOpen(false);
         // переходим на страницу редактирования новой записи
-        window.location.href = `/${dto.authorUsername}/${dto.projectName}/edit`;
+        window.location.href = `/${user.username}/${dto.projectName}`;
     };
 
     return (
@@ -58,6 +58,7 @@ export default function HeaderContainer({children}) {
                 open={createOpen}
                 onClose={() => setCreateOpen(false)}
                 onCreated={onProjectCreated}
+                username={user?.username}
             />
             {children}
         </FilterContext.Provider>

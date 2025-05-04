@@ -1,11 +1,12 @@
 import React from 'react';
-import {Avatar, Box, Button, Stack, Typography} from '@mui/material';
+import {Box, Button, Stack, Typography} from '@mui/material';
+import AvatarWithFallback from "../common/AvatarWithFallback.jsx";
 
 export default function ProfileHeader({profile, onEdit}) {
     const {username, fullName, description, avatarUrl, favouritesCount, viewsCount, likesCount} = profile;
     return (
         <Box display="flex" alignItems="center" mb={4}>
-            <Avatar src={avatarUrl} alt={"User Avatar"} sx={{width: 80, height: 80, mr: 3}}/>
+            <AvatarWithFallback src={avatarUrl} alt={"User Avatar"} size={80} sx={{mr: 3}}/>
             <Box flexGrow={1}>
                 <Typography variant="h4">{fullName}</Typography>
                 <Typography variant="subtitle1" color="text.secondary">@{username}</Typography>

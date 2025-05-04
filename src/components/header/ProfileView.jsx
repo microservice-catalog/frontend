@@ -1,10 +1,11 @@
 // src/components/Header/ProfileView.jsx
 import React, {useEffect, useState} from 'react';
 import {Link} from 'react-router-dom';
-import {Avatar, Box, Button, IconButton, Menu, MenuItem, Skeleton, Stack, Typography} from '@mui/material';
+import {Box, Button, IconButton, Menu, MenuItem, Skeleton, Stack, Typography} from '@mui/material';
 import {useAuth} from '../../context/AuthContext.jsx';
 import {useThemeContext} from '../../context/ThemeContext.jsx';
 import ThemeSwitch from '../common/ThemeSwitch.jsx';
+import AvatarWithFallback from "../common/AvatarWithFallback.jsx";
 
 const DEFAULT_AVATAR_URL = '/images/default-avatar.png';
 
@@ -31,7 +32,7 @@ function ProfileGuest() {
 
 function ProfileAuth({avatarUrl, onLogout}) {
     const {mode, toggleMode} = useThemeContext();
-    const {user} = useAuth();
+    const {logout} = useAuth();
     const [anchorEl, setAnchorEl] = useState(null);
     const [imgSrc, setImgSrc] = useState(avatarUrl || DEFAULT_AVATAR_URL);
     const [avatarLoading, setAvatarLoading] = useState(!!avatarUrl);
@@ -59,6 +60,7 @@ function ProfileAuth({avatarUrl, onLogout}) {
     const handleMenuClose = () => setAnchorEl(null);
     const handleLogout = () => {
         handleMenuClose();
+        logout();
         onLogout();
     };
 
@@ -68,7 +70,7 @@ function ProfileAuth({avatarUrl, onLogout}) {
                 <Skeleton variant="circular" width={40} height={40}/>
             ) : (
                 <IconButton onClick={handleAvatarClick} size="large">
-                    <Avatar src={imgSrc} alt="User Avatar"/>
+                    <AvatarWithFallback src={imgSrc} alt="User Avatar"/>
                 </IconButton>
             )}
 
@@ -94,7 +96,7 @@ function ProfileAuth({avatarUrl, onLogout}) {
                     </Stack>
                 </MenuItem>
 
-                <MenuItem onClick={handleLogout}>
+                <MenuItem onClick={handleLogout} component={Link} to="/login">
                     Выйти
                 </MenuItem>
             </Menu>

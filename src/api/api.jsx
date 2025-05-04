@@ -99,4 +99,15 @@ export const projectApi = {
 
     deleteEnvParam: (username, projectName, version, name) =>
         axiosInstance.delete(`${PROJECT_URL(username, projectName, version)}/env/${name}`),
+
+    createVersion: (username, projectName, dto) =>
+        axiosInstance.post(`${PROJECT_URL(username, projectName)}/versions`, dto),
+
+    updateVersion: (username, projectName, versionName, dto) =>
+        axiosInstance.patch(`${PROJECT_URL(username, projectName)}/versions/${versionName}`, dto),
+
+    deleteVersion: (username, projectName, versionName) =>
+        axiosInstance.delete(`${PROJECT_URL(username, projectName)}/versions/${versionName}`),
+
+
 };

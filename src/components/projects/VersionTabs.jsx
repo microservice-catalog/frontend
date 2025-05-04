@@ -1,5 +1,6 @@
+// src/components/VersionTabs.jsx
 import React, {useState} from 'react';
-import {Box, Button, IconButton, Menu, MenuItem, Tab, Tabs, TextField} from '@mui/material';
+import {Box, Button, Menu, MenuItem, Tab, Tabs, TextField} from '@mui/material';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 
 export default function VersionTabs({
@@ -29,74 +30,85 @@ export default function VersionTabs({
         const name = window.prompt('Новое имя версии', menuVer);
         if (name) onRename(menuVer, name);
     };
+
     const handleDelete = () => {
         closeMenu();
         if (window.confirm(`Удалить версию "${menuVer}"?`)) onDelete(menuVer);
     };
 
+    // Handle add mode
+    const startAdd = () => setAdding(true);
+    const cancelAdd = () => {
+        setAdding(false);
+        setNewName('');
+    };
+    const confirmAdd = () => {
+        if (newName.trim()) {
+            onAdd(newName.trim());
+            setNewName('');
+            setAdding(false);
+        }
+    };
+
     return (
-        <Box mb={3}>
-            <Tabs value={current} onChange={(_, v) => onSelect(v)}>
+        <Box mb={3} display="flex" alignItems="center">
+            <Tabs
+                value={adding ? false : current}
+                onChange={(_, v) => onSelect(v)}
+                sx={{flex: 1}}
+            >
                 {versions.map(v => (
                     <Tab
                         key={v.versionName}
+                        value={v.versionName}
                         label={
-                            <Box display="flex" alignItems="center">
+                            <Box sx={{display: 'flex', alignItems: 'center'}}>
                                 {v.versionName}
-                                {/* Меню только если есть права */}
                                 {onRename && onDelete && (
-                                    <IconButton
-                                        size="small"
+                                    <Box
+                                        component="span"
+                                        sx={{display: 'flex', alignItems: 'center', ml: 1, cursor: 'pointer'}}
                                         onClick={e => {
                                             e.stopPropagation();
                                             openMenu(e, v.versionName);
                                         }}
                                     >
                                         <MoreVertIcon fontSize="small"/>
-                                    </IconButton>
+                                    </Box>
                                 )}
                             </Box>
                         }
-                        value={v.versionName}
                     />
                 ))}
+            </Tabs>
 
-                {/* Add только если разрешено */}
-                {onAdd && (
-                    adding ? (
-                        <Box display="flex" alignItems="center" sx={{ml: 2}}>
+            {/* Add button or input */}
+            {onAdd && (
+                <Box sx={{ml: 2, display: 'flex', alignItems: 'center'}}>
+                    {adding ? (
+                        <>
                             <TextField
                                 size="small"
                                 placeholder="Название версии"
                                 value={newName}
                                 onChange={e => setNewName(e.target.value)}
                             />
-                            <Button
-                                size="small"
-                                variant="contained"
-                                onClick={() => {
-                                    onAdd(newName);
-                                    setNewName('');
-                                    setAdding(false);
-                                }}
-                            >
-                                Add
+                            <Button size="small" variant="contained" sx={{ml: 1}} onClick={confirmAdd}>
+                                Добавить
                             </Button>
-                            <Button size="small" onClick={() => setAdding(false)}>×</Button>
-                        </Box>
+                            <Button size="small" sx={{ml: 1}} onClick={cancelAdd}>
+                                Отмена
+                            </Button>
+                        </>
                     ) : (
-                        <Tab
-                            label="+ Add"
-                            onClick={() => setAdding(true)}
-                            value="__add__"
-                            sx={{opacity: 0.7}}
-                        />
-                    )
-                )}
-            </Tabs>
+                        <Button size="small" variant="text" onClick={startAdd} sx={{opacity: 0.7}}>
+                            + Добавить
+                        </Button>
+                    )}
+                </Box>
+            )}
 
-            {/* Контекстное меню */}
-            <Menu anchorEl={anchorEl} open={!!anchorEl} onClose={closeMenu}>
+            <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={closeMenu}>
                 {onRename && <MenuItem onClick={handleRename}>Rename</MenuItem>}
                 {onDelete && <MenuItem onClick={handleDelete}>Delete</MenuItem>}
             </Menu>

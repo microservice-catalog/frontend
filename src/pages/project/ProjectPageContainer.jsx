@@ -94,17 +94,17 @@ export default function ProjectPageContainer() {
         setVersion(res.data);
     };
 
-    const handleRenameVersion = async (oldName, newName) => {
-        await projectApi.updateVersion(username, projectName, oldName, {name: newName});
-        setVersions(vs => vs.map(v => v.versionName === oldName ? {...v, versionName: newName} : v));
-        if (selectedVer === oldName) setSelectedVer(newName);
+    const handleRenameVersion = async (versionName, newName) => {
+        await projectApi.updateVersion(username, projectName, versionName, {name: newName});
+        setVersions(vs => vs.map(v => v.versionName === versionName ? {...v, versionName: newName} : v));
+        if (selectedVer === versionName) setSelectedVer(newName);
     };
 
-    const handleDeleteVersion = async (ver) => {
-        await projectApi.deleteVersion(username, projectName, ver);
-        setVersions(vs => vs.filter(v => v.versionName !== ver));
-        if (selectedVer === ver && versions.length > 1) {
-            const next = versions.find(v => v.versionName !== ver).versionName;
+    const handleDeleteVersion = async (versionName) => {
+        await projectApi.deleteVersion(username, projectName, versionName);
+        setVersions(vs => vs.filter(v => v.versionName !== versionName));
+        if (selectedVer === versionName && versions.length > 1) {
+            const next = versions.find(v => v.versionName !== versionName).versionName;
             handleVersionSelect(next);
         }
     };
@@ -173,7 +173,7 @@ export default function ProjectPageContainer() {
                     <Typography variant="h4">
                         {project.authorUsername}
                         <Box component="span" fontWeight="bold" sx={{ml: 1}}>
-                            {project.projectName}
+                            / {project.projectName}
                         </Box>
                     </Typography>
                     <Typography variant="body2" color="text.secondary" sx={{mt: 0.5}}>
@@ -184,7 +184,7 @@ export default function ProjectPageContainer() {
                 <Box sx={{flexGrow: 1}}/>
                 {isOwner && (
                     <Button variant="contained" color="error" onClick={() => setConfirmOpen(true)}>
-                        Delete Project
+                        Удалить проект
                     </Button>
                 )}
             </Box>
@@ -250,7 +250,7 @@ export default function ProjectPageContainer() {
             {
                 (!!(version.dockerCommand) && !!(version.dockerCommand.trim())) ?
                     <Box mb={3} position="relative">
-                        <Typography variant="subtitle1" gutterBottom>Run Command</Typography>
+                        <Typography variant="subtitle1" gutterBottom>Команда запуска</Typography>
                         <Box component="pre" sx={theme => ({
                             backgroundColor: theme.palette.background.default,
                             p: 2,
@@ -262,7 +262,7 @@ export default function ProjectPageContainer() {
                                 size="small"
                                 sx={{position: 'absolute', top: 8, right: 8}}
                             >
-                                <ContentCopy fontSize="small"/>
+                                <ContentCopy sx={{color: theme.palette.text.secondary}} fontSize="small"/>
                             </IconButton>
                         </Box>
                     </Box>
