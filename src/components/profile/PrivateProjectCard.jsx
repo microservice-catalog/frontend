@@ -12,7 +12,7 @@ export default function PrivateProjectCard({project, username}) {
                 <Typography
                     variant="h6"
                     component={Link}
-                    to={`/projects/${username}/${projectName}`}
+                    to={`/${username}/${projectName}`}
                     color="primary"
                     sx={{textDecoration: 'none'}}
                 >
@@ -32,7 +32,7 @@ export default function PrivateProjectCard({project, username}) {
             <CardActions sx={{justifyContent: 'flex-end', px: 2, pb: 2}}>
                 <Button
                     component={Link}
-                    to={`/projects/${username}/${projectName}`}
+                    to={`/${username}/${projectName}`}
                     variant="outlined"
                     color="primary"
                     size="small"

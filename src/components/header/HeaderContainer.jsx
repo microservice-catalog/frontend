@@ -39,7 +39,7 @@ export default function HeaderContainer({children}) {
     const onProjectCreated = (dto) => {
         setCreateOpen(false);
         // переходим на страницу редактирования новой записи
-        window.location.href = `/projects/${dto.authorUsername}/${dto.projectName}/edit`;
+        window.location.href = `/${dto.authorUsername}/${dto.projectName}/edit`;
     };
 
     return (

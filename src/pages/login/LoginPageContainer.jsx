@@ -61,14 +61,19 @@ function LoginPageContainer() {
                                     borderRadius: 1,
                                     p: 1,
                                     backgroundColor: theme.palette.error.light,
-                                    mt: 1
+                                    mt: 1,
                                 })}
                             >
-                                <Typography variant="body2" color="error" align="center">
+                                <Typography
+                                    variant="body2"
+                                    sx={theme => ({color: theme.palette.error.contrastText})}
+                                    align="center"
+                                >
                                     {error}
                                 </Typography>
                             </Box>
                         )}
+
 
                         <Button
                             type="submit"

@@ -37,6 +37,7 @@ export default function HomePageContainer() {
 
     // Toggle like handler
     const handleToggleLike = async (projectName, currentlyLiked) => {
+        // todo разобраться что с автором
         try {
             await projectApi.toggleFavourite(/* authorUsername */ projects.find(p => p.projectName === projectName).authorUsername,
                 projectName,

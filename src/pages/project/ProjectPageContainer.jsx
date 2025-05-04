@@ -25,7 +25,7 @@ import InlineDescription from '../../components/projects/InlineDescription.jsx';
 import VersionTabs from '../../components/projects/VersionTabs.jsx';
 import EnvParamsTable from '../../components/projects/EnvParamsTable.jsx';
 import ThumbUpIcon from "@mui/icons-material/ThumbUp";
-import CloudDownloadIcon from "@mui/icons-material/CloudDownload";
+import DownloadIcon from "@mui/icons-material/Download";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 
 export default function ProjectPageContainer() {
@@ -202,7 +202,7 @@ export default function ProjectPageContainer() {
                     <Typography variant="body2">{project.likesCount}</Typography>
                 </Stack>
                 <Stack direction="row" spacing={1} alignItems="center">
-                    <CloudDownloadIcon fontSize="small" color="inherit"/>
+                    <DownloadIcon fontSize="small" color="inherit"/>
                     <Typography variant="body2">{project.downloadsCount}</Typography>
                 </Stack>
                 <Stack direction="row" spacing={1} alignItems="center">
