@@ -7,6 +7,7 @@ import RegisterPageContainer from "./pages/register/RegisterPageContainer.jsx";
 import ProfilePageContainer from "./pages/profile/ProfilePageContainer.jsx";
 import HomePageContainer from "./pages/home/HomePageContainer.jsx";
 import ProjectPageContainer from "./pages/project/ProjectPageContainer.jsx";
+import UserProfilePageContainer from "./pages/profile/UserProfilePageContainer.jsx";
 
 
 function App() {
@@ -31,7 +32,11 @@ function App() {
                     element={<ProfilePageContainer/>}
                 />
                 <Route
-                    path="/projects/:username/:projectName"
+                    path="/:username"
+                    element={<UserProfilePageContainer/>}
+                />
+                <Route
+                    path="/:username/:projectName"
                     element={<ProjectPageContainer/>}
                 />
             </Routes>

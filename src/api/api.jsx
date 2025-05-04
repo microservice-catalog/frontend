@@ -26,27 +26,22 @@ export const authApi = {
 };
 
 export const userApi = {
-    // Получить профиль залогиненого юзера
     getMe: () =>
-        axiosInstance.get(API_URLS.ME),
+        axiosInstance.get(`${API_URLS.USERS}/me`),
 
-    // Получить свой профиль (если отличается от /users/me)
     getProfile: () =>
         axiosInstance.get(API_URLS.PROFILE),
 
+    getUserProfile: (username) =>
+        axiosInstance.get(`${API_URLS.USERS}/${username}`),
+
     // Обновить профиль.
-// Параметры: { name, bio, avatarUrl, ... }
     updateProfile: (data) =>
         axiosInstance.patch(API_URLS.PROFILE, data),
 };
 
 export const projectApi = {
     // Список всех проектов текущего юзера
-    /**
-     * Get list of projects with pagination
-     * @param {number} page - Zero-based page index
-     * @param {number} limit - Page size
-     */
     getHomeProjects: (page = 0, limit = 20) =>
         axiosInstance.get(API_URLS.PROJECTS, {params: {page, limit}}),
 
@@ -60,6 +55,9 @@ export const projectApi = {
                 page, limit, q: query, t: tags
             }
         }),
+
+    getUserProjects: (username, page = 0, limit = 20) =>
+        axiosInstance.get(`${API_URLS.PROJECTS}/${username}`, {params: {page, limit}}),
 
     // Получить конкретный проект по user и projectName
     getProject: (username, projectName) =>

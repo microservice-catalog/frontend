@@ -19,8 +19,8 @@ export const API_URLS = {
     REFRESH: `${CORE_BASE_URL}/auth/refresh`,
     CONFIRM_EMAIL: `${CORE_BASE_URL}/auth/confirm`,
     PROJECTS: `${CORE_BASE_URL}/projects`,
+    USERS: `${CORE_BASE_URL}/users`,
     PROFILE: `${CORE_BASE_URL}/profile`,
-    ME: `${CORE_BASE_URL}/users/me`,
     LOGOUT: `${CORE_BASE_URL}/auth/logout`
 };
 
