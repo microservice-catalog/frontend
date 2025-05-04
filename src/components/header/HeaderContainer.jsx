@@ -46,6 +46,7 @@ export default function HeaderContainer({children}) {
         <FilterContext.Provider value={{search, filterTags}}>
             <HeaderView
                 avatarUrl={user?.avatarUrl}
+                username={user?.username}
                 isAuthenticated={isAuthenticated}
                 onLogout={logout}
                 loading={loading}

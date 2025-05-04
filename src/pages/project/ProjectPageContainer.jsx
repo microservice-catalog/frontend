@@ -12,12 +12,10 @@ import {
     DialogContentText,
     DialogTitle,
     Divider,
-    IconButton,
     Stack,
     Typography,
     useTheme
 } from '@mui/material';
-import {ContentCopy} from '@mui/icons-material';
 import {useNavigate, useParams} from 'react-router-dom';
 import {projectApi} from '../../api/api.jsx';
 import {useAuth} from '../../context/AuthContext.jsx';
@@ -27,6 +25,7 @@ import EnvParamsTable from '../../components/projects/EnvParamsTable.jsx';
 import ThumbUpIcon from "@mui/icons-material/ThumbUp";
 import DownloadIcon from "@mui/icons-material/Download";
 import VisibilityIcon from "@mui/icons-material/Visibility";
+import CopyableCommand from "../../components/CopyableCommand.jsx";
 
 export default function ProjectPageContainer() {
     const theme = useTheme();
@@ -247,37 +246,24 @@ export default function ProjectPageContainer() {
                 <Button href={version.githubLink} target="_blank">GitHub</Button>
                 <Button href={version.dockerHubLink} target="_blank">Docker Hub</Button>
             </Stack>
-            {
-                (!!(version.dockerCommand) && !!(version.dockerCommand.trim())) ?
-                    <Box mb={3} position="relative">
-                        <Typography variant="subtitle1" gutterBottom>Команда запуска</Typography>
-                        <Box component="pre" sx={theme => ({
-                            backgroundColor: theme.palette.background.default,
-                            p: 2,
-                            borderRadius: 1,
-                        })}>
-                            {version.dockerCommand}
-                            <IconButton
-                                onClick={handleCopy}
-                                size="small"
-                                sx={{position: 'absolute', top: 8, right: 8}}
-                            >
-                                <ContentCopy sx={{color: theme.palette.text.secondary}} fontSize="small"/>
-                            </IconButton>
-                        </Box>
-                    </Box>
-                    : <> </>
-            }
-
+            {version.dockerCommand?.trim() && (
+                <CopyableCommand command={version.dockerCommand}/>
+            )}
             {/* Env Params */}
-            <Box mb={3}>
-                <Typography variant="subtitle1" gutterBottom>Environment Parameters</Typography>
-                <EnvParamsTable
-                    params={version.envParameters}
-                    onAdd={isOwner ? handleAddEnv : undefined}
-                    onUpdate={isOwner ? handleUpdateEnv : undefined}
-                    onDelete={isOwner ? handleDeleteEnv : undefined}
-                />
+            <Box sx={{mb: 3}}>
+                <Typography variant="subtitle1" gutterBottom>Переменные окружения</Typography>
+                <Box sx={{
+                    display: "inline-block",
+                    whiteSpace: 'normal',
+                    wordBreak: 'break-all'
+                }}>
+                    <EnvParamsTable
+                        params={version.envParameters}
+                        onAdd={isOwner ? handleAddEnv : undefined}
+                        onUpdate={isOwner ? handleUpdateEnv : undefined}
+                        onDelete={isOwner ? handleDeleteEnv : undefined}
+                    />
+                </Box>
             </Box>
         </Container>
     );

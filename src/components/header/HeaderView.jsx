@@ -101,6 +101,7 @@ export default function HeaderView({
                         isAuthenticated={isAuthenticated}
                         avatarUrl={avatarUrl}
                         onLogout={onLogout}
+                        username={username}
                     />
                 </Box>
             </Toolbar>

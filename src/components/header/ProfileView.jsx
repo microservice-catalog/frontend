@@ -5,32 +5,24 @@ import {Box, Button, IconButton, Menu, MenuItem, Skeleton, Stack, Typography} fr
 import {useAuth} from '../../context/AuthContext.jsx';
 import {useThemeContext} from '../../context/ThemeContext.jsx';
 import ThemeSwitch from '../common/ThemeSwitch.jsx';
-import AvatarWithFallback from "../common/AvatarWithFallback.jsx";
+import AvatarWithFallback from '../common/AvatarWithFallback.jsx';
 
 const DEFAULT_AVATAR_URL = '/images/default-avatar.png';
 
 function ProfileGuest() {
     return (
         <Stack direction="row" spacing={1}>
-            <Button
-                color="inherit"
-                component={Link}
-                to="/login"
-            >
+            <Button color="inherit" component={Link} to="/login">
                 Войти
             </Button>
-            <Button
-                color="inherit"
-                component={Link}
-                to="/register"
-            >
+            <Button color="inherit" component={Link} to="/register">
                 Регистрация
             </Button>
         </Stack>
     );
 }
 
-function ProfileAuth({avatarUrl, onLogout}) {
+function ProfileAuth({avatarUrl, onLogout, username}) {
     const {mode, toggleMode} = useThemeContext();
     const {logout} = useAuth();
     const [anchorEl, setAnchorEl] = useState(null);
@@ -67,7 +59,7 @@ function ProfileAuth({avatarUrl, onLogout}) {
     return (
         <Box>
             {avatarLoading ? (
-                <Skeleton variant="circular" width={40} height={40}/>
+                <Skeleton variant="circular" width={40} height={40} onClick={handleAvatarClick}/>
             ) : (
                 <IconButton onClick={handleAvatarClick} size="large">
                     <AvatarWithFallback src={imgSrc} alt="User Avatar"/>
@@ -81,11 +73,9 @@ function ProfileAuth({avatarUrl, onLogout}) {
                 anchorOrigin={{vertical: 'bottom', horizontal: 'right'}}
                 transformOrigin={{vertical: 'top', horizontal: 'right'}}
             >
-                <MenuItem component={Link} to="/profile" onClick={handleMenuClose}>
+                <MenuItem component={Link} to={`/${username}`} onClick={handleMenuClose}>
                     Профиль
                 </MenuItem>
-
-                {/* Theme toggle */}
                 <MenuItem>
                     <Stack direction="row" alignItems="center" spacing={1} width="100%">
                         <Typography variant="body2">
@@ -95,7 +85,6 @@ function ProfileAuth({avatarUrl, onLogout}) {
                         <ThemeSwitch checked={mode === 'dark'} onChange={toggleMode}/>
                     </Stack>
                 </MenuItem>
-
                 <MenuItem onClick={handleLogout} component={Link} to="/login">
                     Выйти
                 </MenuItem>
@@ -104,7 +93,10 @@ function ProfileAuth({avatarUrl, onLogout}) {
     );
 }
 
-export default function ProfileView(isAuthenticated,
-                                    ...props) {
-    return isAuthenticated ? <ProfileAuth {...props} /> : <ProfileGuest/>;
+export default function ProfileView({isAuthenticated, avatarUrl, onLogout, username}) {
+    return isAuthenticated ? (
+        <ProfileAuth avatarUrl={avatarUrl} onLogout={onLogout} username={username}/>
+    ) : (
+        <ProfileGuest/>
+    );
 }

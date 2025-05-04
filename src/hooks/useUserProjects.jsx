@@ -3,34 +3,38 @@ import {useEffect, useState} from 'react';
 import {projectApi} from '../api/api.jsx';
 
 /**
- * Хук для загрузки публичных и приватных проектов пользователя с пагинацией
+ * Хук для загрузки публичных проектов пользователя с пагинацией
  * @param {string} username
  * @param {number} page
  * @param {number} size
  */
 export function useUserProjects(username, page, size) {
     const [publicProjects, setPublicProjects] = useState([]);
-    const [privateProjects, setPrivateProjects] = useState([]);
     const [totalPages, setTotalPages] = useState(0);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
     useEffect(() => {
+        if (!username) {
+            setPublicProjects([]);
+            setTotalPages(0);
+            setLoading(false);
+            return;
+        }
         setLoading(true);
-        Promise.all([
-            projectApi.getUserProjects(username, page, size),
-        ])
-            .then(([response]) => {
-                const pub = response.data.publicProjects;
-                const priv = response.data.privateProjects;
-                setPublicProjects(pub.content);
-                setPrivateProjects(priv.content);
-                // Предполагаем, что общее число страниц задаётся по публичным проектам
-                setTotalPages(pub.totalPages);
+        projectApi.getUserProjects(username, page, size)
+            .then(res => {
+                const data = res.data;
+                // content должен быть массивом проектов
+                setPublicProjects(Array.isArray(data.content) ? data.content : []);
+                setTotalPages(typeof data.totalPages === 'number' ? data.totalPages : 0);
             })
-            .catch(err => setError(err))
+            .catch(err => {
+                console.error(err);
+                setError(err);
+            })
             .finally(() => setLoading(false));
     }, [username, page, size]);
 
-    return {publicProjects, privateProjects, totalPages, loading, error};
+    return {publicProjects, totalPages, loading, error};
 }

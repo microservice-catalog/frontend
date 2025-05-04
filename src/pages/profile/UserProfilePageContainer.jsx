@@ -13,7 +13,7 @@ export default function UserProfilePageContainer() {
 
     const {profile, loading: loadingProfile} = useUserProfile(username);
     const {
-        projects, totalPages,
+        publicProjects: projects, totalPages,
         loading: loadingProjects
     } = useUserProjects(username, page, 10);
 

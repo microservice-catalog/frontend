@@ -9,7 +9,6 @@ export const AuthProvider = ({children}) => {
     const [authLoading, setAuthLoading] = useState(true);
     const [isAuthenticated, setAuthenticated] = useState(false);
 
-    // Fetch current user using /users/me
     const fetchUser = async () => {
         setAuthLoading(true);
         try {
