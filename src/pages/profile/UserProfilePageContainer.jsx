@@ -39,17 +39,28 @@ export default function UserProfilePageContainer() {
             <Stack direction="row" spacing={2} alignItems="center">
                 <Avatar src={profile.avatarUrl} sx={{width: 80, height: 80}}/>
                 <Box>
-                    <Typography variant="h4" color="textPrimary">
-                        {profile.fullName}
-                    </Typography>
-                    <Typography variant="subtitle1" color="text.secondary">
-                        @{profile.username}
-                    </Typography>
+                    {!!profile.fullName ?
+                        <Box>
+                            <Typography variant="h4" color="textPrimary">
+                                {profile.fullName}
+                            </Typography>
+                            <Typography variant="subtitle1" color="text.secondary">
+                                @{profile.username}
+                            </Typography>
+                        </Box>
+                        :
+                        <Box>
+                            <Typography variant="h4" color="textPrimary">
+                                @{profile.username}
+                            </Typography>
+                        </Box>
+                    }
                     {profile.description && (
                         <Typography sx={{mt: 1}}>
                             {profile.description}
                         </Typography>
                     )}
+
                 </Box>
             </Stack>
 
@@ -61,7 +72,7 @@ export default function UserProfilePageContainer() {
             </Stack>
 
             {/* Проекты */}
-            <Box sx={{mt: 4}}>
+            <Box sx={{my: 4}}>
                 <Typography variant="h5" gutterBottom>
                     Проекты пользователя
                 </Typography>

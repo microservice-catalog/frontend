@@ -3,7 +3,7 @@ import React, {useRef, useState} from 'react';
 import {Box, IconButton, Snackbar, Tooltip, Typography, useTheme} from '@mui/material';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 
-export default function CopyableCommand({command}) {
+export default function CopyableCommand({command, onClick}) {
     const theme = useTheme();
     const [openSnack, setOpenSnack] = useState(false);
     const preRef = useRef(null);
@@ -13,6 +13,7 @@ export default function CopyableCommand({command}) {
             // Копируем текст команды
             await navigator.clipboard.writeText(command);
             setOpenSnack(true);
+            onClick();
         } catch (err) {
             console.error('Copy failed', err);
         }

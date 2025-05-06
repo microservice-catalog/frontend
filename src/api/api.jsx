@@ -109,5 +109,7 @@ export const projectApi = {
     deleteVersion: (username, projectName, versionName) =>
         axiosInstance.delete(`${PROJECT_URL(username, projectName)}/versions/${versionName}`),
 
+    incrementPulls: (username, projectName) =>
+        axiosInstance.post(`${PROJECT_URL(username, projectName)}/pulls`),
 
 };

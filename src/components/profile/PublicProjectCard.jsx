@@ -21,9 +21,7 @@ export default function PublicProjectCard({project, onToggleLike}) {
         authorAvatarUrl
     } = project;
 
-    const handleLike = () => {
-        onToggleLike?.(projectName, likedByMe);
-    };
+    const handleLike = () => onToggleLike?.(projectName, likedByMe);
 
     return (
         <Card
@@ -36,16 +34,11 @@ export default function PublicProjectCard({project, onToggleLike}) {
                 height: '100%'
             }}
         >
-            <CardContent sx={{flexGrow: 1, p: 2}}>
-                {/* Header: avatar, author/project and like */}
+            <CardContent sx={{flexGrow: 1, display: 'flex', flexDirection: 'column', p: 2}}>
+                {/* Header */}
                 <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
                     <Box display="flex" alignItems="center">
-                        <AvatarWithFallback
-                            src={authorAvatarUrl}
-                            alt={authorUsername}
-                            size={24}
-                            sx={{mr: 1}}
-                        />
+                        <AvatarWithFallback src={authorAvatarUrl} alt={authorUsername} size={24} sx={{mr: 1}}/>
                         <Typography variant="body2" color="text.secondary">
                             {authorUsername}/<Box component="span" fontWeight="bold">{projectName}</Box>
                         </Typography>
@@ -55,7 +48,7 @@ export default function PublicProjectCard({project, onToggleLike}) {
                     </IconButton>
                 </Box>
 
-                {/* Project title */}
+                {/* Title */}
                 <Typography
                     variant="h6"
                     component={Link}
@@ -70,46 +63,45 @@ export default function PublicProjectCard({project, onToggleLike}) {
                     {title}
                 </Typography>
 
-                {/* Tags */}
-                {tags.length > 0 && (
-                    <Box mt={1}>
+                {/* Bottom group: tags, stats, open button */}
+                <Box sx={{mt: 'auto', display: 'flex', flexDirection: 'column', gap: 1}}>
+                    {tags.length > 0 && (
                         <TagList
                             tags={tags}
                             onTagClick={tag => window.location.assign(`/?tag=${encodeURIComponent(tag)}`)}
                         />
-                    </Box>
-                )}
+                    )}
 
-                {/* Stats and Open button on same level */}
-                <Box display="flex" justifyContent="space-between" alignItems="center" mt={2}>
-                    <Stack direction="row" spacing={2} alignItems="center">
-                        <Stack direction="row" spacing={0.5} alignItems="center">
-                            <Favorite fontSize="small" color="action"/>
-                            <Typography variant="caption" color="text.secondary">
-                                {likesCount}
-                            </Typography>
+                    <Box display="flex" justifyContent="space-between" alignItems="center">
+                        <Stack direction="row" spacing={2} alignItems="center">
+                            <Stack direction="row" spacing={0.5} alignItems="center">
+                                <Favorite fontSize="small" color="action"/>
+                                <Typography variant="caption" color="text.secondary">
+                                    {likesCount}
+                                </Typography>
+                            </Stack>
+                            <Stack direction="row" spacing={0.5} alignItems="center">
+                                <DownloadIcon fontSize="small" color="action"/>
+                                <Typography variant="caption" color="text.secondary">
+                                    {downloadsCount}
+                                </Typography>
+                            </Stack>
+                            <Stack direction="row" spacing={0.5} alignItems="center">
+                                <VisibilityIcon fontSize="small" color="action"/>
+                                <Typography variant="caption" color="text.secondary">
+                                    {viewsCount}
+                                </Typography>
+                            </Stack>
                         </Stack>
-                        <Stack direction="row" spacing={0.5} alignItems="center">
-                            <DownloadIcon fontSize="small" color="action"/>
-                            <Typography variant="caption" color="text.secondary">
-                                {downloadsCount}
-                            </Typography>
-                        </Stack>
-                        <Stack direction="row" spacing={0.5} alignItems="center">
-                            <VisibilityIcon fontSize="small" color="action"/>
-                            <Typography variant="caption" color="text.secondary">
-                                {viewsCount}
-                            </Typography>
-                        </Stack>
-                    </Stack>
-                    <Button
-                        size="small"
-                        variant="contained"
-                        component={Link}
-                        to={`/${authorUsername}/${projectName}`}
-                    >
-                        Открыть
-                    </Button>
+                        <Button
+                            size="small"
+                            variant="contained"
+                            component={Link}
+                            to={`/${authorUsername}/${projectName}`}
+                        >
+                            Открыть
+                        </Button>
+                    </Box>
                 </Box>
             </CardContent>
         </Card>

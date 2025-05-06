@@ -127,8 +127,11 @@ export default function ProjectPageContainer() {
         }));
     };
 
-    const handleCopy = () => {
-        navigator.clipboard.writeText(version.dockerCommand);
+    const handleCopyCommand = (username, projectName) => {
+        try {
+            projectApi.incrementPulls(username, projectName);
+        } catch (ignored) {
+        }
     };
 
     const handleDeleteProject = async () => {
@@ -247,7 +250,8 @@ export default function ProjectPageContainer() {
                 <Button href={version.dockerHubLink} target="_blank">Docker Hub</Button>
             </Stack>
             {version.dockerCommand?.trim() && (
-                <CopyableCommand command={version.dockerCommand}/>
+                <CopyableCommand onClick={() => handleCopyCommand(username, projectName)}
+                                 command={version.dockerCommand}/>
             )}
             {/* Env Params */}
             <Box sx={{mb: 3}}>
