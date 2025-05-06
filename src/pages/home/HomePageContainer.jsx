@@ -2,7 +2,7 @@
 import React, {useContext, useEffect, useState} from 'react';
 import {Box, CircularProgress, Container, Grid, Pagination, Typography} from '@mui/material';
 import ProjectCard from '../../components/profile/PublicProjectCard.jsx';
-import {projectApi} from '../../api/api.jsx';
+import {favouriteApi, projectApi} from '../../api/api.jsx';
 import {FilterContext} from '../../components/Header/HeaderContainer.jsx';
 
 export default function HomePageContainer() {
@@ -39,7 +39,7 @@ export default function HomePageContainer() {
     const handleToggleLike = async (projectName, currentlyLiked) => {
         // todo разобраться что с автором
         try {
-            await projectApi.toggleFavourite(/* authorUsername */ projects.find(p => p.projectName === projectName).authorUsername,
+            await favouriteApi.toggleFavourite(/* authorUsername */ projects.find(p => p.projectName === projectName).authorUsername,
                 projectName,
                 currentlyLiked);
             setProjects(prev =>

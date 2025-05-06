@@ -12,7 +12,7 @@ export const AuthProvider = ({children}) => {
     const fetchUser = async () => {
         setAuthLoading(true);
         try {
-            const response = await userApi.getMe();
+            const response = await userApi.getProfileShortData();
             setUser(response.data);
             setAuthenticated(true);
         } catch (error) {

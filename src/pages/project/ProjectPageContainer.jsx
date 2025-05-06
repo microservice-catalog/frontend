@@ -17,7 +17,7 @@ import {
     useTheme
 } from '@mui/material';
 import {useNavigate, useParams} from 'react-router-dom';
-import {projectApi} from '../../api/api.jsx';
+import {projectApi, projectVersionApi} from '../../api/api.jsx';
 import {useAuth} from '../../context/AuthContext.jsx';
 import InlineDescription from '../../components/projects/InlineDescription.jsx';
 import VersionTabs from '../../components/projects/VersionTabs.jsx';
@@ -52,13 +52,13 @@ export default function ProjectPageContainer() {
                 setProject(projRes.data);
 
                 // Load versions list
-                const versRes = await projectApi.getAllVersions(username, projectName);
+                const versRes = await projectVersionApi.getAllVersions(username, projectName);
                 const {versions: versList, defaultVersionName} = versRes.data;
                 setVersions(versList);
                 setSelectedVer(defaultVersionName);
 
                 // Load selected version details
-                const verRes = await projectApi.getProjectVersion(username, projectName, defaultVersionName);
+                const verRes = await projectVersionApi.getProjectVersion(username, projectName, defaultVersionName);
                 setVersion(verRes.data);
             } catch (err) {
                 console.error(err);
@@ -79,7 +79,7 @@ export default function ProjectPageContainer() {
         setSelectedVer(ver);
         setLoading(true);
         try {
-            const res = await projectApi.getProjectVersion(username, projectName, ver);
+            const res = await projectVersionApi.getProjectVersion(username, projectName, ver);
             setVersion(res.data);
         } finally {
             setLoading(false);
@@ -87,20 +87,20 @@ export default function ProjectPageContainer() {
     };
 
     const handleAddVersion = async (name) => {
-        const res = await projectApi.createVersion(username, projectName, {versionName: name});
+        const res = await projectVersionApi.createVersion(username, projectName, {versionName: name});
         setVersions(vs => [...vs, res.data]);
         setSelectedVer(name);
         setVersion(res.data);
     };
 
     const handleRenameVersion = async (versionName, newName) => {
-        await projectApi.updateVersion(username, projectName, versionName, {name: newName});
+        await projectVersionApi.updateVersion(username, projectName, versionName, {name: newName});
         setVersions(vs => vs.map(v => v.versionName === versionName ? {...v, versionName: newName} : v));
         if (selectedVer === versionName) setSelectedVer(newName);
     };
 
     const handleDeleteVersion = async (versionName) => {
-        await projectApi.deleteVersion(username, projectName, versionName);
+        await projectVersionApi.deleteVersion(username, projectName, versionName);
         setVersions(vs => vs.filter(v => v.versionName !== versionName));
         if (selectedVer === versionName && versions.length > 1) {
             const next = versions.find(v => v.versionName !== versionName).versionName;
@@ -109,18 +109,18 @@ export default function ProjectPageContainer() {
     };
 
     const handleAddEnv = async (dto) => {
-        const res = await projectApi.addEnvParam(username, projectName, selectedVer, dto);
+        const res = await projectVersionApi.addEnvParam(username, projectName, selectedVer, dto);
         setVersion(v => ({...v, envParameters: [...v.envParameters, res.data]}));
     };
     const handleUpdateEnv = async (name, dto) => {
-        await projectApi.updateEnvParam(username, projectName, selectedVer, name, dto);
+        await projectVersionApi.updateEnvParam(username, projectName, selectedVer, name, dto);
         setVersion(v => ({
             ...v,
             envParameters: v.envParameters.map(p => p.name === name ? {...p, ...dto} : p)
         }));
     };
     const handleDeleteEnv = async (name) => {
-        await projectApi.deleteEnvParam(username, projectName, selectedVer, name);
+        await projectVersionApi.deleteEnvParam(username, projectName, selectedVer, name);
         setVersion(v => ({
             ...v,
             envParameters: v.envParameters.filter(p => p.name !== name)

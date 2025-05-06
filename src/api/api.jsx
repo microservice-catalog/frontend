@@ -1,33 +1,28 @@
 import axiosInstance, {API_URLS, PROJECT_URL} from './AxiosInstanse.jsx'
 
 export const authApi = {
-    // Регистрация нового пользователя.
-// Параметры: { username, password, email, ... }
+
     register: (data) =>
         axiosInstance.post(API_URLS.REGISTER, data),
 
-    // Логин.
-// Параметры: { username, password }
     login: (data) =>
         axiosInstance.post(API_URLS.LOGIN, data),
 
-    // Обновление access-token по refresh-token (cookie автоматически отправится).
     refresh: () =>
         axiosInstance.post(API_URLS.REFRESH),
 
-    // Подтверждение e-mail.
-// Параметры: { token }
     confirmEmail: (data) =>
         axiosInstance.post(API_URLS.CONFIRM_EMAIL, data),
 
-    // Логаут (удаление сессии).
     logout: () =>
         axiosInstance.post(API_URLS.LOGOUT),
+
 };
 
 export const userApi = {
-    getMe: () =>
-        axiosInstance.get(`${API_URLS.USERS}/me`),
+
+    getProfileShortData: (username = "me") =>
+        axiosInstance.get(`${API_URLS.USERS}/${username}`),
 
     getProfile: () =>
         axiosInstance.get(API_URLS.PROFILE),
@@ -35,17 +30,19 @@ export const userApi = {
     getUserProfile: (username) =>
         axiosInstance.get(`${API_URLS.USERS}/${username}`),
 
-    // Обновить профиль.
     updateProfile: (data) =>
         axiosInstance.patch(API_URLS.PROFILE, data),
+
 };
 
 export const projectApi = {
-    // Список всех проектов текущего юзера
+
     getHomeProjects: (page = 0, limit = 20) =>
         axiosInstance.get(API_URLS.PROJECTS, {params: {page, limit}}),
 
-    // Создать новый проект.
+    getProject: (username, projectName) =>
+        axiosInstance.get(PROJECT_URL(username, projectName)),
+
     createProject: (data) =>
         axiosInstance.post(API_URLS.PROJECTS, data),
 
@@ -56,49 +53,27 @@ export const projectApi = {
             }
         }),
 
-    getUserProjects: (username, page = 0, limit = 20) =>
-        axiosInstance.get(`${API_URLS.PROJECTS}/${username}`, {params: {page, limit}}),
-
-    // Получить конкретный проект по user и projectName
-    getProject: (username, projectName) =>
-        axiosInstance.get(PROJECT_URL(username, projectName)),
-
-    // Получить конкретный проект по user и projectName
-    getProjectVersion: (username, projectName, versionName) =>
-        axiosInstance.get(PROJECT_URL(username, projectName, versionName)),
-
-
-    getAllVersions: (username, projectName) =>
-        axiosInstance.get(PROJECT_URL(username, projectName) + "/versions"),
-
-    // Обновить проект.
     updateProject: (username, projectName, data) =>
         axiosInstance.patch(PROJECT_URL(username, projectName), data),
 
-    // Удалить проект
     deleteProject: (username, projectName) =>
         axiosInstance.delete(PROJECT_URL(username, projectName)),
 
-    addFavourite: (username, projectName) =>
-        axiosInstance.put(`${PROJECT_URL(username, projectName)}/favourite`),
+    incrementPulls: (username, projectName) =>
+        axiosInstance.post(`${PROJECT_URL(username, projectName)}/pulls`),
 
-    removeFavourite: (username, projectName) =>
-        axiosInstance.delete(`${PROJECT_URL(username, projectName)}/favourite`),
+    getUserProjects: (username, page = 0, limit = 20, privateFlag = false) =>
+        axiosInstance.get(`${API_URLS.PROJECTS}/${username}`, {params: {page, limit, 'private': privateFlag}}),
 
-    toggleFavourite: async (username, projectName, liked) => {
-        return liked
-            ? projectApi.removeFavourite(username, projectName)
-            : projectApi.addFavourite(username, projectName);
-    },
+};
 
-    addEnvParam: (username, projectName, version, dto) =>
-        axiosInstance.post(`${PROJECT_URL(username, projectName, version)}/env`, dto),
+export const projectVersionApi = {
 
-    updateEnvParam: (username, projectName, version, name, dto) =>
-        axiosInstance.patch(`${PROJECT_URL(username, projectName, version)}/env/${name}`, dto),
+    getProjectVersion: (username, projectName, versionName) =>
+        axiosInstance.get(PROJECT_URL(username, projectName, versionName)),
 
-    deleteEnvParam: (username, projectName, version, name) =>
-        axiosInstance.delete(`${PROJECT_URL(username, projectName, version)}/env/${name}`),
+    getAllVersions: (username, projectName) =>
+        axiosInstance.get(PROJECT_URL(username, projectName) + "/versions"),
 
     createVersion: (username, projectName, dto) =>
         axiosInstance.post(`${PROJECT_URL(username, projectName)}/versions`, dto),
@@ -109,7 +84,29 @@ export const projectApi = {
     deleteVersion: (username, projectName, versionName) =>
         axiosInstance.delete(`${PROJECT_URL(username, projectName)}/versions/${versionName}`),
 
-    incrementPulls: (username, projectName) =>
-        axiosInstance.post(`${PROJECT_URL(username, projectName)}/pulls`),
+    addEnvParam: (username, projectName, version, dto) =>
+        axiosInstance.post(`${PROJECT_URL(username, projectName, version)}/env`, dto),
+
+    updateEnvParam: (username, projectName, version, name, dto) =>
+        axiosInstance.patch(`${PROJECT_URL(username, projectName, version)}/env/${name}`, dto),
+
+    deleteEnvParam: (username, projectName, version, name) =>
+        axiosInstance.delete(`${PROJECT_URL(username, projectName, version)}/env/${name}`),
+
+};
+
+export const favouriteApi = {
+
+    addFavourite: (username, projectName) =>
+        axiosInstance.put(`${PROJECT_URL(username, projectName)}/favourite`),
+
+    removeFavourite: (username, projectName) =>
+        axiosInstance.delete(`${PROJECT_URL(username, projectName)}/favourite`),
+
+    toggleFavourite: async (username, projectName, liked) => {
+        return liked
+            ? favouriteApi.removeFavourite(username, projectName)
+            : favouriteApi.addFavourite(username, projectName);
+    },
 
 };
