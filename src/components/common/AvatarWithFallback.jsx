@@ -1,5 +1,5 @@
 // src/components/common/AvatarWithFallback.jsx
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Avatar} from '@mui/material';
 import PersonIcon from '@mui/icons-material/Person';
 
@@ -21,6 +21,10 @@ export default function AvatarWithFallback({src, alt, size = 40, ...rest}) {
 
     // Если источник отсутствует или произошла ошибка загрузки, показываем иконку-заглушку
     const showFallback = imgError || !src;
+
+    useEffect(() => {
+        // alert(`AvatarWithFallback ava size: ${size}`)
+    }, []);
 
     return (
         <Avatar

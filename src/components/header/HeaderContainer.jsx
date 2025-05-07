@@ -19,6 +19,10 @@ export default function HeaderContainer({children}) {
     const [filterTags, setFilterTags] = useState([]);
     const [createOpen, setCreateOpen] = useState(false);
 
+    const onLogout = () => {
+        logout();
+    }
+
     // загрузка всех тегов
     useEffect(() => {
         (async () => {
@@ -48,7 +52,7 @@ export default function HeaderContainer({children}) {
                 avatarUrl={user?.avatarUrl}
                 username={user?.username}
                 isAuthenticated={isAuthenticated}
-                onLogout={logout}
+                onLogout={onLogout}
                 loading={loading}
                 allTags={allTags}
                 onSearchChange={onSearchChange}

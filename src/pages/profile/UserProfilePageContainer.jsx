@@ -1,15 +1,30 @@
 import React, {useState} from 'react';
-import {useParams} from 'react-router-dom';
-import {Avatar, Box, CircularProgress, Container, Grid, Pagination, Stack, Typography, useTheme} from '@mui/material';
+import {useNavigate, useParams} from 'react-router-dom';
+import {
+    Avatar,
+    Box,
+    Button,
+    CircularProgress,
+    Container,
+    Grid,
+    Pagination,
+    Stack,
+    Typography,
+    useTheme
+} from '@mui/material';
 
 import {useUserProfile} from '../../hooks/useUserProfile.jsx';
 import {useUserProjects} from '../../hooks/useUserProjects.jsx';
 import PublicProjectCard from '../../components/profile/PublicProjectCard.jsx';
+import {useAuth} from "../../context/AuthContext.jsx";
+import ProfileHeader from "../../components/profile/ProfileHeader.jsx";
 
 export default function UserProfilePageContainer() {
     const {username} = useParams();
     const theme = useTheme();
     const [page, setPage] = useState(0);
+    const {user} = useAuth();
+    const navigate = useNavigate();
 
     const {profile, loading: loadingProfile} = useUserProfile(username);
     const {
@@ -35,9 +50,13 @@ export default function UserProfilePageContainer() {
 
     return (
         <Container maxWidth="md" sx={{mt: 4}}>
+            {/*asad*/}
+            <ProfileHeader avatarSize={80} profile={profile}
+                           onEdit={() => navigate(`/${username}/edit`)}></ProfileHeader>
+
             {/* Профиль */}
             <Stack direction="row" spacing={2} alignItems="center">
-                <Avatar src={profile.avatarUrl} sx={{width: 80, height: 80}}/>
+                <Avatar src={profile.avatarUrl} sx={{width: 80, height: 100}}/>
                 <Box>
                     {!!profile.fullName ?
                         <Box>
@@ -63,6 +82,18 @@ export default function UserProfilePageContainer() {
 
                 </Box>
             </Stack>
+
+            {user?.username === profile.username && (
+                <Box sx={{mt: 2, textAlign: 'right'}}>
+                    <Button
+                        variant="outlined"
+                        color="primary"
+                        onClick={() => navigate(`/${username}/edit`)}
+                    >
+                        Edit
+                    </Button>
+                </Box>
+            )}
 
             {/* Статистика */}
             <Stack direction="row" spacing={4} sx={{mt: 3, color: theme.palette.text.secondary}}>

@@ -2,7 +2,6 @@
 import React, {useEffect, useState} from 'react';
 import {Link} from 'react-router-dom';
 import {Box, Button, IconButton, Menu, MenuItem, Skeleton, Stack, Typography} from '@mui/material';
-import {useAuth} from '../../context/AuthContext.jsx';
 import {useThemeContext} from '../../context/ThemeContext.jsx';
 import ThemeSwitch from '../common/ThemeSwitch.jsx';
 import AvatarWithFallback from '../common/AvatarWithFallback.jsx';
@@ -24,7 +23,6 @@ function ProfileGuest() {
 
 function ProfileAuth({avatarUrl, onLogout, username}) {
     const {mode, toggleMode} = useThemeContext();
-    const {logout} = useAuth();
     const [anchorEl, setAnchorEl] = useState(null);
     const [imgSrc, setImgSrc] = useState(avatarUrl || DEFAULT_AVATAR_URL);
     const [avatarLoading, setAvatarLoading] = useState(!!avatarUrl);
@@ -52,7 +50,6 @@ function ProfileAuth({avatarUrl, onLogout, username}) {
     const handleMenuClose = () => setAnchorEl(null);
     const handleLogout = () => {
         handleMenuClose();
-        logout();
         onLogout();
     };
 

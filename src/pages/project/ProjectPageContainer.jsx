@@ -47,7 +47,7 @@ export default function ProjectPageContainer() {
         const load = async () => {
             setLoading(true);
             try {
-                // Load project metadata
+                //
                 const projRes = await projectApi.getProject(username, projectName);
                 setProject(projRes.data);
 

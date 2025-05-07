@@ -1,4 +1,6 @@
-import axiosInstance, {API_URLS, PROJECT_URL} from './AxiosInstanse.jsx'
+import axiosInstance from './AxiosInstanse.jsx'
+import axiosFormDataInstance from './AxiosInstanse.jsx'
+import {API_URLS, PROJECT_URL} from "./urls.jsx";
 
 export const authApi = {
 
@@ -21,19 +23,45 @@ export const authApi = {
 
 export const userApi = {
 
-    getProfileShortData: (username = "me") =>
-        axiosInstance.get(`${API_URLS.USERS}/${username}`),
+    getMe: () =>
+        axiosInstance.get(`${API_URLS.USERS}/me`),
 
-    getProfile: () =>
-        axiosInstance.get(API_URLS.PROFILE),
+    getProfileShortData: (username) =>
+        axiosInstance.get(`${API_URLS.USERS}/${username}/short`),
 
     getUserProfile: (username) =>
         axiosInstance.get(`${API_URLS.USERS}/${username}`),
 
-    updateProfile: (data) =>
-        axiosInstance.patch(API_URLS.PROFILE, data),
+    updateUserProfile: (username, dto) =>
+        axiosInstance.patch(`${API_URLS.USERS}/${username}`, dto),
 
 };
+
+export const photoApi = {
+
+    uploadPhoto: (username, file) => {
+        const formData = new FormData()
+        formData.append('photo', file)
+        return axiosFormDataInstance.post(
+            `${API_URLS.USERS}/${username}/photos`,
+            formData,
+            {headers: {'Content-Type': 'multipart/form-data'}}
+        )
+    },
+
+    downloadPhoto: (photoId) =>
+        axiosFormDataInstance.get(`${API_URLS.PHOTOS}/${photoId}`),
+
+    getUserPhotoList: (username) =>
+        axiosInstance.get(`${API_URLS.USERS}/${username}/photos`),
+
+    getUserMainPhoto: (username) =>
+        axiosInstance.get(`${API_URLS.USERS}/${username}/photos/main`),
+
+    deletePhoto: (username, photoId) =>
+        axiosInstance.delete(`${API_URLS.USERS}/${username}/photos/${photoId}`),
+
+}
 
 export const projectApi = {
 
@@ -67,6 +95,13 @@ export const projectApi = {
 
 };
 
+export const projectTagApi = {
+
+    searchTags: (query) =>
+        axiosInstance.get(`${API_URLS.TAGS}`, {params: {'q': query}})
+
+}
+
 export const projectVersionApi = {
 
     getProjectVersion: (username, projectName, versionName) =>
@@ -96,6 +131,9 @@ export const projectVersionApi = {
 };
 
 export const favouriteApi = {
+
+    getUserFavourites: (username) =>
+        axiosInstance.get(`${API_URLS.USERS}/${username}/favourites`),
 
     addFavourite: (username, projectName) =>
         axiosInstance.put(`${PROJECT_URL(username, projectName)}/favourite`),

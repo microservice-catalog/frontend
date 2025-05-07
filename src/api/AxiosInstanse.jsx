@@ -1,6 +1,7 @@
 import axios from 'axios';
 import camelcaseKeys from "camelcase-keys";
 import snakecaseKeys from 'snakecase-keys';
+import {CORE_BASE_URL} from "./urls.jsx";
 
 axios.defaults.withCredentials = true;
 
@@ -10,76 +11,6 @@ const getCookie = (name) => {
     if (match) return match[2];
     return null;
 };
-
-const CORE_BASE_URL = "http://localhost:8080/api/v1";  // Базовый URL для вашего API
-
-export const API_URLS = {
-    REGISTER: `${CORE_BASE_URL}/auth/register`,
-    LOGIN: `${CORE_BASE_URL}/auth/login`,
-    REFRESH: `${CORE_BASE_URL}/auth/refresh`,
-    CONFIRM_EMAIL: `${CORE_BASE_URL}/auth/confirm`,
-    PROJECTS: `${CORE_BASE_URL}/projects`,
-    USERS: `${CORE_BASE_URL}/users`,
-    PROFILE: `${CORE_BASE_URL}/profile`,
-    LOGOUT: `${CORE_BASE_URL}/auth/logout`
-};
-
-export const PROJECT_URL = (username, projectName, versionName = null) => {
-    return `${API_URLS.PROJECTS}/${username}/${projectName}${!!versionName ? ('/versions/' + versionName) : ""}`
-};
-
-// Создаем axios экземпляр
-export const toCamel = (data) => {
-    // если пришла строка – пытаемся распарсить JSON
-    const parsed = (data && typeof data === 'string') ? JSON.parse(data) : data;
-    return camelcaseKeys(parsed, {deep: true});
-};
-
-export const toSnake = (data) => {
-    return snakecaseKeys(data, {deep: true});
-};
-const axiosInstance = axios.create({
-    baseURL: CORE_BASE_URL,
-    withCredentials: true,
-    headers: {
-        'Content-Type': 'application/json',
-    },
-    // Преобразуем ответ: JSON.parse -> camelCase
-    transformResponse: [
-        (data) => {
-            if (!data) return data;
-            try {
-                return toCamel(JSON.parse(data));
-            } catch {
-                return data;
-            }
-        }
-    ],
-    // Преобразуем запрос: camelCase -> snake_case -> JSON.stringify
-    transformRequest: [
-        (data) => {
-            // Если data — объект или массив, конвертим
-            if (data && typeof data === 'object') {
-                return JSON.stringify(toSnake(data));
-            }
-            return data;
-        }
-    ]
-});
-
-// Добавляем токен в заголовки каждого запроса
-axiosInstance.interceptors.request.use(
-    (config) => {
-        const accessToken = getCookie('dockins_access_token');
-        if (accessToken) {
-            config.headers['Authorization'] = `Bearer ${accessToken}`;
-        }
-        return config;
-    },
-    (error) => {
-        return Promise.reject(error);
-    }
-);
 
 
 // Маппинг ваших DomainErrorCodes → человекочитаемые тексты :contentReference[oaicite:0]{index=0}:contentReference[oaicite:1]{index=1}
@@ -124,6 +55,67 @@ const CODE_MESSAGE_MAP = {
     5500: 'Внутренняя ошибка проекта'
 };
 
+// Создаем axios экземпляр
+export const toCamel = (data) => {
+    // если пришла строка – пытаемся распарсить JSON
+    const parsed = (data && typeof data === 'string') ? JSON.parse(data) : data;
+    return camelcaseKeys(parsed, {deep: true});
+};
+
+export const toSnake = (data) => {
+    return snakecaseKeys(data, {deep: true});
+};
+const axiosInstance = axios.create({
+    baseURL: CORE_BASE_URL,
+    withCredentials: true,
+    headers: {
+        'Content-Type': 'application/json',
+    },
+    // Преобразуем ответ: JSON.parse -> camelCase
+    transformResponse: [
+        (data) => {
+            try {
+                if (!data) return data;
+                try {
+                    return toCamel(JSON.parse(data));
+                } catch {
+                    return data;
+                }
+            } catch (ignored) {
+                return data;
+            }
+        }
+    ],
+    // Преобразуем запрос: camelCase -> snake_case -> JSON.stringify
+    transformRequest: [
+        (data) => {
+            try {
+                // Если data — объект или массив, конвертим
+                if (data && typeof data === 'object') {
+                    return JSON.stringify(toSnake(data));
+                }
+                return data;
+            } catch (ignored) {
+                return data;
+            }
+        }
+    ]
+});
+
+// Добавляем токен в заголовки каждого запроса
+axiosInstance.interceptors.request.use(
+    (config) => {
+        const accessToken = getCookie('dockins_access_token');
+        if (accessToken) {
+            config.headers['Authorization'] = `Bearer ${accessToken}`;
+        }
+        return config;
+    },
+    (error) => {
+        return Promise.reject(error);
+    }
+);
+
 // глобальная обработка ошибок
 axiosInstance.interceptors.response.use(
     response => {
@@ -154,3 +146,56 @@ axiosInstance.interceptors.response.use(
 );
 
 export default axiosInstance;
+
+
+export const axiosFormDataInstance = axios.create({
+    baseURL: CORE_BASE_URL,
+    withCredentials: true,
+    headers: {
+        'Content-Type': 'multipart/form-data',
+    },
+});
+
+// Добавляем токен в заголовки каждого запроса
+axiosFormDataInstance.interceptors.request.use(
+    (config) => {
+        const accessToken = getCookie('dockins_access_token');
+        if (accessToken) {
+            config.headers['Authorization'] = `Bearer ${accessToken}`;
+        }
+        return config;
+    },
+    (error) => {
+        return Promise.reject(error);
+    }
+);
+
+
+// глобальная обработка ошибок
+axiosFormDataInstance.interceptors.response.use(
+    response => {
+        const {code} = response.data;
+        // если код бизнес-ошибки — кидаем
+        if (code != null && CODE_MESSAGE_MAP[code]) {
+            const err = new Error(CODE_MESSAGE_MAP[code]);
+            err.customCode = code;
+            err.customMessage = CODE_MESSAGE_MAP[code];
+            return Promise.reject(err);
+        }
+        // иначе — всё ок
+        return response;
+    },
+    error => {
+        if (error.response && error.response.data) {
+            const {code, message} = error.response.data;
+            error.httpStatus = error.response.status;
+            error.customCode = code;
+            // если в карте — своё сообщение, иначе текст из backend или дефолт
+            error.customMessage =
+                (code != null && CODE_MESSAGE_MAP[code]) ||
+                message ||
+                'Произошла неизвестная ошибка, попробуйте ещё раз';
+        }
+        return Promise.reject(error);
+    }
+);
