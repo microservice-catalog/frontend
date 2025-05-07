@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react'
+import React, {useCallback, useEffect, useRef, useState} from 'react'
 import {
     Alert,
     Box,
@@ -14,14 +14,14 @@ import {
 import {Link, useNavigate, useParams} from 'react-router-dom'
 import {photoApi, userApi} from '../../api/api.jsx'
 import {useUserProfile} from '../../hooks/useUserProfile.jsx'
-import {CORE_BASE_URL} from '../../api/urls.jsx'
+import {API_URLS} from '../../api/urls.jsx'
 import AvatarWithFallback from "../../components/common/AvatarWithFallback.jsx";
 
 export default function UserEditPage() {
     const {username} = useParams()
     const navigate = useNavigate()
 
-    // 1) Получаем профиль
+    // Получаем профиль
     const {
         profile,
         loading: loadingProfile,
@@ -29,7 +29,7 @@ export default function UserEditPage() {
         refetch: refetchProfile
     } = useUserProfile(username)
 
-    // 2) Локальные стейты
+    // Локальные стейты
     const [fullName, setFullName] = useState('')
     const [description, setDescription] = useState('')
     const [file, setFile] = useState(null)
@@ -42,25 +42,39 @@ export default function UserEditPage() {
     const [saving, setSaving] = useState(false)
 
     // Для отзыва objectURL
-    const prevObjectUrl = useRef('')
+    const prevObjectUrl = useRef('');
 
-    // 3) Пришёл профиль — инициализируем всё сразу
+    // Извлеченный метод: загрузка и инициализация аватарки с сервера
+    const initializeAvatar = useCallback(async () => {
+        setServerError('')
+        try {
+            const {data: userProfile} = await userApi.getUserProfile(username)
+            if (userProfile.avatarUrl) {
+                const fullUrl = `${API_URLS.PHOTOS}/${userProfile.avatarUrl}`
+                setPreview(fullUrl)
+                setCurrentPhotoId(userProfile.avatarUrl.split('/').pop())
+            } else {
+                setPreview('')
+                setCurrentPhotoId(null)
+            }
+        } catch (e) {
+            setServerError(e.response?.data?.message || e.message)
+        }
+    }, [username])
+
+    // Инициализация текстовых полей при загрузке profile
     useEffect(() => {
         if (!profile) return
-
         setFullName(profile.fullName || '')
         setDescription(profile.description || '')
-
-        if (profile.avatarUrl) {
-            const fullUrl = CORE_BASE_URL + profile.avatarUrl
-            setPreview(fullUrl)
-            setCurrentPhotoId(profile.avatarUrl.split('/').pop())
-        }
-
-        setInitialized(true)
     }, [profile])
 
-    // 4) Если preview был objectURL — отзываем его при смене/анмаунте
+    // Инициализация аватарки при монтировании компонента
+    useEffect(() => {
+        initializeAvatar().finally(() => setInitialized(true))
+    }, [initializeAvatar])
+
+    // Отзыв objectURL при размонтировании
     useEffect(() => {
         return () => {
             if (prevObjectUrl.current) {
@@ -69,12 +83,11 @@ export default function UserEditPage() {
         }
     }, [])
 
-    // 5) Валидация
+    // Валидация
     const validate = () => {
         const errs = {}
-        if (fullName.length > 255) errs.fullName = 'Максимум 255 символов'
-        if (description.length > 255)
-            errs.description = 'Максимум 255 символов'
+        if (fullName.length > 30) errs.fullName = 'Максимум 30 символов'
+        if (description.length > 100) errs.description = 'Максимум 100 символов'
         if (file) {
             if (!file?.type?.startsWith('image/'))
                 errs.file = 'Нужно загрузить изображение'
@@ -85,7 +98,7 @@ export default function UserEditPage() {
         return Object.keys(errs).length === 0
     }
 
-    // 6) Новый файл выбран
+    // Новый файл выбран
     const handleFileChange = e => {
         const f = e.target.files[0]
         // отменяем предыдущую preview-ссылку
@@ -95,70 +108,57 @@ export default function UserEditPage() {
         if (f) {
             const url = URL.createObjectURL(f)
             prevObjectUrl.current = url
-
             setFile(f)
             setPreview(url)
-            // отменяем «удалить на сервере»
             setCurrentPhotoId(null)
-            // сбрасываем ошибки
             setErrors(err => ({...err, file: null}))
         }
     }
 
-    // 7) Удаление фото (локально или на сервере)
+    // Удаление фото
     const [confirmOpen, setConfirmOpen] = useState(false)
     const handleDeleteClick = () => {
-        // если есть локальный файл — просто отменяем выбор
         if (file) {
-            setFile(null)
-            setPreview(profile.avatarUrl ? CORE_BASE_URL + profile.avatarUrl : '')
-            return
+            setFile(null);
+            initializeAvatar();
+            return;
         }
-        // иначе спрашиваем подтверждение удаления на сервере
-        setConfirmOpen(true)
+        setConfirmOpen(true);
     }
 
     const handleConfirmDelete = async () => {
-        setConfirmOpen(false)
-        setSaving(true)
-        setServerError('')
+        setConfirmOpen(false);
+        setSaving(true);
+        setServerError('');
         try {
-            await photoApi.deletePhoto(username, currentPhotoId)
-            setPreview('')
-            setCurrentPhotoId(null)
+            await photoApi.deletePhoto(username, currentPhotoId);
+            await initializeAvatar();
         } catch (e) {
-            setServerError(e.response?.data?.message || e.message)
+            setServerError(e.response?.data?.message || e.message);
         } finally {
-            setSaving(false)
+            setSaving(false);
         }
     }
 
-    // 8) Сохранение
+    // Сохранение
     const handleSubmit = async e => {
         e.preventDefault()
         setServerError('')
         if (!validate()) return
-
         setSaving(true)
         try {
-            // 8.1 текст
-            await userApi.updateUserProfile(username, {
-                fullName,
-                description
-            })
-            // 8.2 фото
+            await userApi.updateUserProfile(username, {fullName, description})
             if (file) {
                 const {data} = await photoApi.uploadPhoto(username, file)
-                const url = data.url.startsWith('http')
+                const url = data.url?.startsWith('http')
                     ? data.url
-                    : CORE_BASE_URL + data.url
+                    : `${API_URLS.PHOTOS}/${data.url}`
                 setCurrentPhotoId(data.id)
                 setPreview(url)
                 setFile(null)
             }
             navigate(`/${username}`)
         } catch (e) {
-            // разбираем field-ошибки из бэка
             if (e.response?.data?.fieldErrors) {
                 const fe = {}
                 e.response.data.fieldErrors.forEach(({field, message}) => {
@@ -173,7 +173,7 @@ export default function UserEditPage() {
         }
     }
 
-    // 9) Рендер
+    // Рендер
     if (profileError) {
         return (
             <Container sx={{mt: 4, textAlign: 'center'}}>
@@ -182,14 +182,14 @@ export default function UserEditPage() {
                     <Button onClick={refetchProfile}>Повторить</Button>
                 </Alert>
             </Container>
-        );
+        )
     }
     if (loadingProfile || !initialized) {
         return (
             <Box sx={{display: 'flex', justifyContent: 'center', mt: 4}}>
                 <CircularProgress/>
             </Box>
-        );
+        )
     }
 
     return (
@@ -203,11 +203,13 @@ export default function UserEditPage() {
                 <Box sx={{textAlign: 'center', mb: 2}}>
                     <AvatarWithFallback
                         src={preview}
-                        sx={{width: 100, height: 100, mx: 'auto'}}
+                        extraLoading={(loadingProfile || !initialized)}
+                        size={240}
+                        sx={{mx: 'auto'}}
                     />
                     <Box>
                         <Button
-                            component="button"
+                            component="label"
                             variant="outlined"
                             sx={{mt: 1, mr: 1}}
                             disabled={saving}
@@ -221,16 +223,17 @@ export default function UserEditPage() {
                                 disabled={saving}
                             />
                         </Button>
-
-                        <Button
-                            sx={{mt: 1}}
-                            color="error"
-                            variant="outlined"
-                            disabled={saving || (!file && !currentPhotoId)}
-                            onClick={handleDeleteClick}
-                        >
-                            Удалить
-                        </Button>
+                        {(!!preview) &&
+                            <Button
+                                sx={{mt: 1}}
+                                color="error"
+                                variant="outlined"
+                                disabled={saving || (!file && !currentPhotoId)}
+                                onClick={handleDeleteClick}
+                            >
+                                Удалить
+                            </Button>
+                        }
                     </Box>
                     {errors.file && (
                         <Typography color="error" variant="body2">
@@ -244,7 +247,7 @@ export default function UserEditPage() {
                     label="Полное имя"
                     value={fullName}
                     onChange={e => setFullName(e.target.value)}
-                    inputProps={{maxLength: 255}}
+                    inputProps={{maxLength: 30}}
                     error={!!errors.fullName}
                     helperText={errors.fullName}
                     disabled={saving}
@@ -258,7 +261,7 @@ export default function UserEditPage() {
                     rows={4}
                     value={description}
                     onChange={e => setDescription(e.target.value)}
-                    inputProps={{maxLength: 255}}
+                    inputProps={{maxLength: 100}}
                     error={!!errors.description}
                     helperText={errors.description}
                     disabled={saving}

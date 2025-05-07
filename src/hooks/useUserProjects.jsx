@@ -11,7 +11,7 @@ import {projectApi} from '../api/api.jsx';
 export function useUserProjects(username, page, size) {
     const [publicProjects, setPublicProjects] = useState([]);
     const [totalPages, setTotalPages] = useState(0);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
     useEffect(() => {

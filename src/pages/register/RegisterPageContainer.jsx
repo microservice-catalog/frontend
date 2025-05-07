@@ -204,7 +204,9 @@ function RegisterPageContainer() {
                                         p: 1,
                                         backgroundColor: theme.palette.error.light,
                                     })}>
-                                        <Typography variant="body2" color="error" align="center">
+                                        <Typography variant="body2"
+                                                    sx={theme => ({color: `${theme.palette.error.contrastText}`})}
+                                                    align="center">
                                             {error}
                                         </Typography>
                                     </Box>

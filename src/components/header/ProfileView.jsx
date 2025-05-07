@@ -1,10 +1,12 @@
 // src/components/Header/ProfileView.jsx
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import {Link} from 'react-router-dom';
-import {Box, Button, IconButton, Menu, MenuItem, Skeleton, Stack, Typography} from '@mui/material';
+import {Box, Button, IconButton, Menu, MenuItem, Stack, Typography} from '@mui/material';
 import {useThemeContext} from '../../context/ThemeContext.jsx';
 import ThemeSwitch from '../common/ThemeSwitch.jsx';
 import AvatarWithFallback from '../common/AvatarWithFallback.jsx';
+import {API_URLS} from "../../api/urls.jsx";
+import {useImageLoader} from "../../hooks/useImageLoader.jsx";
 
 const DEFAULT_AVATAR_URL = '/images/default-avatar.png';
 
@@ -24,27 +26,18 @@ function ProfileGuest() {
 function ProfileAuth({avatarUrl, onLogout, username}) {
     const {mode, toggleMode} = useThemeContext();
     const [anchorEl, setAnchorEl] = useState(null);
-    const [imgSrc, setImgSrc] = useState(avatarUrl || DEFAULT_AVATAR_URL);
-    const [avatarLoading, setAvatarLoading] = useState(!!avatarUrl);
 
-    useEffect(() => {
-        if (!avatarUrl) {
-            setImgSrc(DEFAULT_AVATAR_URL);
-            setAvatarLoading(false);
-            return;
-        }
-        setAvatarLoading(true);
-        const img = new Image();
-        img.src = avatarUrl;
-        img.onload = () => {
-            setImgSrc(avatarUrl);
-            setAvatarLoading(false);
-        };
-        img.onerror = () => {
-            setImgSrc(DEFAULT_AVATAR_URL);
-            setAvatarLoading(false);
-        };
-    }, [avatarUrl]);
+    const fullUrl = avatarUrl ? (
+            avatarUrl.startsWith('http')
+                ? avatarUrl
+                : (`${API_URLS.PHOTOS}/${avatarUrl.split('/').pop()}`)
+        )
+        : null;
+
+    const {src: imgSrc, loading: avatarLoading} = useImageLoader(
+        fullUrl,
+        DEFAULT_AVATAR_URL
+    );
 
     const handleAvatarClick = (e) => setAnchorEl(e.currentTarget);
     const handleMenuClose = () => setAnchorEl(null);
@@ -55,13 +48,10 @@ function ProfileAuth({avatarUrl, onLogout, username}) {
 
     return (
         <Box>
-            {avatarLoading ? (
-                <Skeleton variant="circular" width={40} height={40} onClick={handleAvatarClick}/>
-            ) : (
-                <IconButton onClick={handleAvatarClick} size="large">
-                    <AvatarWithFallback src={imgSrc} alt="User Avatar"/>
-                </IconButton>
-            )}
+            <IconButton onClick={handleAvatarClick} size="large">
+                <AvatarWithFallback src={imgSrc} size={40} extraLoading={avatarLoading}
+                                    alt="User Avatar2"/>
+            </IconButton>
 
             <Menu
                 anchorEl={anchorEl}
