@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {Link, useNavigate} from 'react-router-dom';
+import {Link} from 'react-router-dom';
 import {AppBar, Autocomplete, Box, Button, Skeleton, TextField, Toolbar, Typography, useTheme} from '@mui/material';
 import ProfileView from './ProfileView.jsx';
 
@@ -9,21 +9,23 @@ export default function HeaderView({
                                        isAuthenticated,
                                        onLogout,
                                        loading,
-                                       allTags,
                                        onSearchChange,
+                                       tagOptions,
+                                       onTagInputChange,
                                        onTagsChange,
                                        onCreateProject
                                    }) {
     const [search, setSearch] = useState('');
     const [tags, setTags] = useState([]);
-    const navigate = useNavigate();
     const theme = useTheme();
+
     const handleSearch = (e) => {
-        setSearch(e.target.value);
-        onSearchChange?.(e.target.value);
+        const value = e.target.value;
+        setSearch(value);
+        onSearchChange?.(value);
     };
 
-    const handleTags = (e, value) => {
+    const handleTags = (event, value) => {
         setTags(value);
         onTagsChange?.(value);
     };
@@ -62,7 +64,7 @@ export default function HeaderView({
                     to="/"
                     sx={{
                         flexGrow: 1,
-                        color: theme.palette.text.primary,
+                        color: theme.palette.text.primary
                     }}
                 >
                     Dockins
@@ -73,16 +75,20 @@ export default function HeaderView({
                     placeholder="Поиск…"
                     value={search}
                     onChange={handleSearch}
-                    sx={{ml: 2, width: 600}}
+                    sx={{ml: 2, width: {xs: 200, md: 600}}}
                 />
 
                 <Autocomplete
                     multiple
+                    freeSolo
                     size="small"
-                    options={allTags}
+                    options={tagOptions}
                     value={tags}
+                    onInputChange={(_, value) => {
+                        onTagInputChange?.(value);
+                    }}
                     onChange={handleTags}
-                    sx={{ml: 2, width: 200}}
+                    sx={{ml: 2, width: {xs: 50, sm: 200}}}
                     renderInput={(params) => <TextField {...params} placeholder="Теги..."/>}
                 />
 

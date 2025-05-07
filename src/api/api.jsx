@@ -1,6 +1,7 @@
 import axiosInstance from './AxiosInstanse.jsx'
 import axiosFormDataInstance from './AxiosInstanse.jsx'
 import {API_URLS, PROJECT_URL} from "./urls.jsx";
+import qs from "qs";
 
 export const authApi = {
 
@@ -78,7 +79,9 @@ export const projectApi = {
         axiosInstance.get(API_URLS.PROJECTS, {
             params: {
                 page, limit, q: query, t: tags
-            }
+            },
+            paramsSerializer: params =>
+                qs.stringify(params, {arrayFormat: 'repeat'})
         }),
 
     updateProject: (username, projectName, data) =>
