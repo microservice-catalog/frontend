@@ -124,6 +124,9 @@ export const projectVersionApi = {
     createVersion: (username, projectName, dto) =>
         axiosInstance.post(`${PROJECT_URL(username, projectName)}/versions`, dto),
 
+    makeVersionDefault: (username, projectName, versionName) =>
+        axiosInstance.post(`${PROJECT_URL(username, projectName, versionName)}`, {makeVersionDefault: true}),
+
     updateVersion: (username, projectName, versionName, dto) =>
         axiosInstance.patch(`${PROJECT_URL(username, projectName)}/versions/${versionName}`, dto),
 

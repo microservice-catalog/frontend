@@ -17,9 +17,10 @@ import {
     TableCell,
     TableRow,
     TextField,
-    Typography
+    Typography,
+    useTheme
 } from '@mui/material';
-import {useNavigate, useParams} from 'react-router-dom';
+import {useParams} from 'react-router-dom';
 import LockIcon from '@mui/icons-material/Lock';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import ReactMarkdown from 'react-markdown';
@@ -33,7 +34,7 @@ import {TagEditDialog} from "../../components/projects/TagEditDialog.jsx";
 
 export default function ProjectPageContainer() {
     const {username, projectName} = useParams();
-    const navigate = useNavigate();
+    const theme = useTheme();
     const {user, isAuthenticated} = useAuth();
     const isOwner = isAuthenticated && user?.username === username;
 
@@ -133,7 +134,7 @@ export default function ProjectPageContainer() {
     const handleSetDefault = async () => {
         handleMenuClose();
         try {
-            await projectApi.updateProject(username, projectName, {defaultVersionName: selectedVer});
+            await projectVersionApi.makeVersionDefault(username, projectName, selectedVer);
         } catch (err) {
             console.error(err);
         }
@@ -197,13 +198,11 @@ export default function ProjectPageContainer() {
         await reloadProject();
     };
 
-    const handleTagsSave = async (newTags) => {
-        setProject(p => ({...p, tags: newTags}));
-    };
-
     if (loading || !project || !versionDetail) {
         return <Box textAlign="center" mt={4}><CircularProgress/></Box>;
     }
+
+    const formatDate = (date) => date.toLocaleDateString('ru-RU', {day: 'numeric', month: 'short', year: 'numeric'});
 
     return (
         <Container sx={{py: 4}}>
@@ -227,7 +226,7 @@ export default function ProjectPageContainer() {
                 <Box>
                     <Typography variant="h4">{username} / {projectName}</Typography>
                     <Typography variant="body2"
-                                color="text.secondary">{new Date(project.createdOn).toLocaleDateString()}</Typography>
+                                color="text.secondary">{formatDate(new Date(project.createdOn))}</Typography>
                     <Typography variant="h5" mt={1}>{project.title}</Typography>
                 </Box>
                 <Box sx={{flexGrow: 1}}/>
@@ -271,7 +270,8 @@ export default function ProjectPageContainer() {
 
             <FormControl fullWidth sx={{mb: 3}}>
                 <InputLabel>Версия</InputLabel>
-                <Select value={selectedVer} label="Версия" onChange={handleVersionChange}>
+                <Select value={selectedVer} label="Версия" sx={{width: {xs: 200, sm: 600}}}
+                        onChange={handleVersionChange} variant="outlined">
                     {versions.map(v => (
                         <MenuItem key={v.versionName} value={v.versionName}>
                             {v.versionName} {v.isPrivate && <LockIcon fontSize="small" color="error"/>}
@@ -280,7 +280,8 @@ export default function ProjectPageContainer() {
                 </Select>
                 {isOwner && (
                     <IconButton onClick={handleMenuOpen}
-                                sx={{position: 'absolute', top: 0, right: 0}}><MoreVertIcon/></IconButton>
+                                sx={{position: 'absolute', top: 0, right: 0, color: theme.palette.text.primary}}
+                    ><MoreVertIcon/></IconButton>
                 )}
                 <Menu anchorEl={menuAnchor} open={Boolean(menuAnchor)} onClose={handleMenuClose}>
                     <MenuItem onClick={handleRename}>Переименовать</MenuItem>
