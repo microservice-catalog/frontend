@@ -1,5 +1,4 @@
-// src/pages/home/HomePageContainer.jsx
-import React, {useContext, useEffect, useState} from 'react';
+import React, {useContext, useEffect, useRef, useState} from 'react';
 import {Box, CircularProgress, Container, Grid, Pagination, Typography} from '@mui/material';
 import ProjectCard from '../../components/profile/PublicProjectCard.jsx';
 import {favouriteApi, projectApi} from '../../api/api.jsx';
@@ -12,9 +11,22 @@ export default function HomePageContainer() {
     const [total, setTotal] = useState(0);
     const limit = 20;
     const [loading, setLoading] = useState(true);
+    // In-memory cache for search results
+    const searchCache = useRef({});
 
     const load = async () => {
         setLoading(true);
+        // build cache key based on current params
+        const key = JSON.stringify({page, search, filterTags});
+        // check cache
+        if (searchCache.current[key]) {
+            const {content, totalPages} = searchCache.current[key];
+            setProjects(content);
+            setTotal(totalPages);
+            setLoading(false);
+            return;
+        }
+
         try {
             const res = await projectApi.getProjects({
                 page: page - 1,
@@ -22,8 +34,11 @@ export default function HomePageContainer() {
                 query: search || undefined,
                 tags: filterTags.length ? filterTags : undefined
             });
-            setProjects(res.data.content);
-            setTotal(res.data.totalPages);
+            const {content, totalPages} = res.data;
+            setProjects(content);
+            setTotal(totalPages);
+            // store in cache
+            searchCache.current[key] = {content, totalPages};
         } catch (e) {
             console.error(e);
         } finally {
@@ -37,11 +52,12 @@ export default function HomePageContainer() {
 
     // Toggle like handler
     const handleToggleLike = async (projectName, currentlyLiked) => {
-        // todo разобраться что с автором
         try {
-            await favouriteApi.toggleFavourite(/* authorUsername */ projects.find(p => p.projectName === projectName).authorUsername,
+            await favouriteApi.toggleFavourite(
+                projects.find(p => p.projectName === projectName).authorUsername,
                 projectName,
-                currentlyLiked);
+                currentlyLiked
+            );
             setProjects(prev =>
                 prev.map(p =>
                     p.projectName === projectName
