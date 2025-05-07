@@ -1,6 +1,6 @@
 // src/components/common/AvatarWithFallback.jsx
-import React, {useEffect, useState} from 'react';
-import {Avatar} from '@mui/material';
+import React, {useState} from 'react';
+import {Avatar, Skeleton} from '@mui/material';
 import PersonIcon from '@mui/icons-material/Person';
 
 /**
@@ -12,7 +12,7 @@ import PersonIcon from '@mui/icons-material/Person';
  * - size: number (диаметр аватара в пикселях)
  * - ...rest: любые остальные пропсы Avatar
  */
-export default function AvatarWithFallback({src, alt, size = 40, ...rest}) {
+export default function AvatarWithFallback({src, alt, size = 40, extraLoading, sx, ...rest}) {
     const [imgError, setImgError] = useState(false);
 
     const handleError = () => {
@@ -22,19 +22,18 @@ export default function AvatarWithFallback({src, alt, size = 40, ...rest}) {
     // Если источник отсутствует или произошла ошибка загрузки, показываем иконку-заглушку
     const showFallback = imgError || !src;
 
-    useEffect(() => {
-        // alert(`AvatarWithFallback ava size: ${size}`)
-    }, []);
+    if (extraLoading)
+        return <Skeleton variant="circular" width={size} height={size}/>
 
     return (
         <Avatar
+            {...rest}
             src={showFallback ? undefined : src}
             alt={alt}
             onError={handleError}
-            sx={{width: size, height: size}}
-            {...rest}
+            sx={{...sx, width: size, height: size}}
         >
-            {showFallback && <PersonIcon/>}
+            {showFallback && <PersonIcon sx={{width: size, height: size}}/>}
         </Avatar>
     );
 }
