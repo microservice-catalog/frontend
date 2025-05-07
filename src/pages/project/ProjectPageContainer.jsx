@@ -1,65 +1,66 @@
-// src/pages/projects/ProjectPageContainer.jsx
 import React, {useEffect, useState} from 'react';
 import {
     Box,
     Button,
-    Chip,
     CircularProgress,
     Container,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogContentText,
-    DialogTitle,
     Divider,
+    FormControl,
+    IconButton,
+    InputLabel,
+    Menu,
+    MenuItem,
+    Select,
     Stack,
-    Typography,
-    useTheme
+    Table,
+    TableBody,
+    TableCell,
+    TableRow,
+    TextField,
+    Typography
 } from '@mui/material';
 import {useNavigate, useParams} from 'react-router-dom';
+import LockIcon from '@mui/icons-material/Lock';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+import ReactMarkdown from 'react-markdown';
 import {projectApi, projectVersionApi} from '../../api/api.jsx';
 import {useAuth} from '../../context/AuthContext.jsx';
-import InlineDescription from '../../components/projects/InlineDescription.jsx';
-import VersionTabs from '../../components/projects/VersionTabs.jsx';
+import TagList from '../../components/common/TagList.jsx';
+import CopyableCommand from '../../components/CopyableCommand.jsx';
 import EnvParamsTable from '../../components/projects/EnvParamsTable.jsx';
-import ThumbUpIcon from "@mui/icons-material/ThumbUp";
-import DownloadIcon from "@mui/icons-material/Download";
-import VisibilityIcon from "@mui/icons-material/Visibility";
-import CopyableCommand from "../../components/CopyableCommand.jsx";
+import {LinkEditDialog} from "../../components/projects/LinkEditDialog.jsx";
+import {TagEditDialog} from "../../components/projects/TagEditDialog.jsx";
 
 export default function ProjectPageContainer() {
-    const theme = useTheme();
     const {username, projectName} = useParams();
     const navigate = useNavigate();
     const {user, isAuthenticated} = useAuth();
+    const isOwner = isAuthenticated && user?.username === username;
 
     const [project, setProject] = useState(null);
-    const [version, setVersion] = useState(null);
     const [versions, setVersions] = useState([]);
     const [selectedVer, setSelectedVer] = useState('');
+    const [versionDetail, setVersionDetail] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [confirmOpen, setConfirmOpen] = useState(false);
-
-    // Determine ownership
-    const isOwner = isAuthenticated && (user.username === project?.authorUsername);
+    const [tagDialogOpen, setTagDialogOpen] = useState(false);
+    const [linkDialogOpen, setLinkDialogOpen] = useState(false);
+    const [descEdit, setDescEdit] = useState(false);
+    const [descDraft, setDescDraft] = useState('');
+    const [preview, setPreview] = useState(false);
+    const [menuAnchor, setMenuAnchor] = useState(null);
 
     useEffect(() => {
         const load = async () => {
             setLoading(true);
             try {
-                //
                 const projRes = await projectApi.getProject(username, projectName);
                 setProject(projRes.data);
-
-                // Load versions list
+                setDescDraft(projRes.data.description || '');
                 const versRes = await projectVersionApi.getAllVersions(username, projectName);
-                const {versions: versList, defaultVersionName} = versRes.data;
-                setVersions(versList);
-                setSelectedVer(defaultVersionName);
-
-                // Load selected version details
-                const verRes = await projectVersionApi.getProjectVersion(username, projectName, defaultVersionName);
-                setVersion(verRes.data);
+                setVersions(versRes.data.versions);
+                setSelectedVer(versRes.data.defaultVersionName);
+                const verRes = await projectVersionApi.getProjectVersion(username, projectName, versRes.data.defaultVersionName);
+                setVersionDetail(verRes.data);
             } catch (err) {
                 console.error(err);
             } finally {
@@ -69,205 +70,260 @@ export default function ProjectPageContainer() {
         load();
     }, [username, projectName]);
 
-    // Handlers
-    const updateDescription = async (newDesc) => {
-        await projectApi.updateProject(username, projectName, {description: newDesc});
-        setProject(p => ({...p, description: newDesc}));
+    const reloadProject = async () => {
+        try {
+            const {data} = await projectApi.getProject(username, projectName);
+            setProject(data);
+        } catch (err) {
+            console.error(err);
+        }
     };
 
-    const handleVersionSelect = async (ver) => {
+    const handleDescSave = async () => {
+        try {
+            await projectApi.updateProject(username, projectName, {description: descDraft});
+            setProject(p => ({...p, description: descDraft}));
+            setDescEdit(false);
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    const handleVersionChange = async (e) => {
+        const ver = e.target.value;
         setSelectedVer(ver);
         setLoading(true);
         try {
-            const res = await projectVersionApi.getProjectVersion(username, projectName, ver);
-            setVersion(res.data);
+            const {data} = await projectVersionApi.getProjectVersion(username, projectName, ver);
+            setVersionDetail(data);
+        } catch (err) {
+            console.error(err);
         } finally {
             setLoading(false);
         }
     };
 
-    const handleAddVersion = async (name) => {
-        const res = await projectVersionApi.createVersion(username, projectName, {versionName: name});
-        setVersions(vs => [...vs, res.data]);
-        setSelectedVer(name);
-        setVersion(res.data);
-    };
+    const handleMenuOpen = (e) => setMenuAnchor(e.currentTarget);
+    const handleMenuClose = () => setMenuAnchor(null);
 
-    const handleRenameVersion = async (versionName, newName) => {
-        await projectVersionApi.updateVersion(username, projectName, versionName, {name: newName});
-        setVersions(vs => vs.map(v => v.versionName === versionName ? {...v, versionName: newName} : v));
-        if (selectedVer === versionName) setSelectedVer(newName);
-    };
-
-    const handleDeleteVersion = async (versionName) => {
-        await projectVersionApi.deleteVersion(username, projectName, versionName);
-        setVersions(vs => vs.filter(v => v.versionName !== versionName));
-        if (selectedVer === versionName && versions.length > 1) {
-            const next = versions.find(v => v.versionName !== versionName).versionName;
-            handleVersionSelect(next);
-        }
-    };
-
-    const handleAddEnv = async (dto) => {
-        const res = await projectVersionApi.addEnvParam(username, projectName, selectedVer, dto);
-        setVersion(v => ({...v, envParameters: [...v.envParameters, res.data]}));
-    };
-    const handleUpdateEnv = async (name, dto) => {
-        await projectVersionApi.updateEnvParam(username, projectName, selectedVer, name, dto);
-        setVersion(v => ({
-            ...v,
-            envParameters: v.envParameters.map(p => p.name === name ? {...p, ...dto} : p)
-        }));
-    };
-    const handleDeleteEnv = async (name) => {
-        await projectVersionApi.deleteEnvParam(username, projectName, selectedVer, name);
-        setVersion(v => ({
-            ...v,
-            envParameters: v.envParameters.filter(p => p.name !== name)
-        }));
-    };
-
-    const handleCopyCommand = (username, projectName) => {
+    const handleRename = async () => {
+        handleMenuClose();
+        const name = window.prompt('Новое имя версии', selectedVer);
+        if (!name) return;
         try {
-            projectApi.incrementPulls(username, projectName);
-        } catch (ignored) {
+            await projectVersionApi.updateVersion(username, projectName, selectedVer, {name});
+            setVersions(vs => vs.map(v => v.versionName === selectedVer ? {...v, versionName: name} : v));
+            setSelectedVer(name);
+        } catch (err) {
+            console.error(err);
         }
     };
 
-    const handleDeleteProject = async () => {
-        setConfirmOpen(false);
-        await projectApi.deleteProject(username, projectName);
-        navigate('/');
+    const handleTogglePrivate = async () => {
+        handleMenuClose();
+        try {
+            const verObj = versions.find(v => v.versionName === selectedVer);
+            await projectVersionApi.updateVersion(username, projectName, selectedVer, {isPrivate: !verObj.isPrivate});
+            setVersions(vs => vs.map(v => v.versionName === selectedVer ? {...v, isPrivate: !verObj.isPrivate} : v));
+        } catch (err) {
+            console.error(err);
+        }
     };
 
-    if (loading || !project || !version) {
-        return (
-            <Box textAlign="center" mt={4}>
-                <CircularProgress/>
-            </Box>
-        );
-    }
+    const handleSetDefault = async () => {
+        handleMenuClose();
+        try {
+            await projectApi.updateProject(username, projectName, {defaultVersionName: selectedVer});
+        } catch (err) {
+            console.error(err);
+        }
+    };
 
-    const formattedDate = new Date(project.createdOn)
-        .toLocaleDateString('ru-RU', {day: 'numeric', month: 'short', year: 'numeric'});
+    const handleDelete = async () => {
+        handleMenuClose();
+        if (!window.confirm(`Удалить версию ${selectedVer}?`)) return;
+        try {
+            await projectVersionApi.deleteVersion(username, projectName, selectedVer);
+            const rest = versions.filter(v => v.versionName !== selectedVer);
+            setVersions(rest);
+            if (rest.length) setSelectedVer(rest[0].versionName);
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    // Handlers for environment parameters
+    const handleAddEnv = async (dto) => {
+        try {
+            const {data} = await projectVersionApi.addEnvParam(username, projectName, selectedVer, dto);
+            setVersionDetail(v => ({...v, envParameters: [...v.envParameters, data]}));
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    const handleUpdateEnv = async (name, dto) => {
+        try {
+            await projectVersionApi.updateEnvParam(username, projectName, selectedVer, name, dto);
+            setVersionDetail(v => ({
+                ...v,
+                envParameters: v.envParameters.map(param => param.name === name ? {...param, ...dto} : param)
+            }));
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    const handleDeleteEnv = async (name) => {
+        try {
+            await projectVersionApi.deleteEnvParam(username, projectName, selectedVer, name);
+            setVersionDetail(v => ({
+                ...v,
+                envParameters: v.envParameters.filter(param => param.name !== name)
+            }));
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    const handleCopyCommand = () => {
+        projectApi.incrementPulls(username, projectName).catch(() => {
+        });
+    };
+
+    const handleLinksSave = async ({github, docker}) => {
+        await projectApi.updateProject(username, projectName, {githubLink: github, dockerHubLink: docker});
+        setProject(p => ({...p, githubLink: github, dockerHubLink: docker}));
+        await reloadProject();
+    };
+
+    const handleTagsSave = async (newTags) => {
+        setProject(p => ({...p, tags: newTags}));
+    };
+
+    if (loading || !project || !versionDetail) {
+        return <Box textAlign="center" mt={4}><CircularProgress/></Box>;
+    }
 
     return (
         <Container sx={{py: 4}}>
-            {/* Delete Confirmation */}
-            {isOwner && (
-                <Dialog open={confirmOpen} onClose={() => setConfirmOpen(false)}>
-                    <DialogTitle>Подтвердите удаление</DialogTitle>
-                    <DialogContent>
-                        <DialogContentText>
-                            Удалить проект «{project.projectName}»? Это действие необратимо.
-                        </DialogContentText>
-                    </DialogContent>
-                    <DialogActions>
-                        <Button onClick={() => setConfirmOpen(false)}>Отмена</Button>
-                        <Button color="error" onClick={handleDeleteProject}>Удалить</Button>
-                    </DialogActions>
-                </Dialog>
-            )}
+            <TagEditDialog
+                open={tagDialogOpen}
+                initialTags={project.tags}
+                onClose={() => setTagDialogOpen(false)}
+                onSave={(tags) => setProject(p => ({...p, tags}))}
+                username={username}
+                projectName={projectName}
+            />
 
-            {/* Header */}
+            <LinkEditDialog
+                open={linkDialogOpen}
+                initial={{github: project.githubLink, docker: project.dockerHubLink}}
+                onClose={() => setLinkDialogOpen(false)}
+                onSave={handleLinksSave}
+            />
+
             <Box display="flex" alignItems="center" mb={2}>
                 <Box>
-                    <Typography variant="h4">
-                        {project.authorUsername}
-                        <Box component="span" fontWeight="bold" sx={{ml: 1}}>
-                            / {project.projectName}
-                        </Box>
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary" sx={{mt: 0.5}}>
-                        {formattedDate}
-                    </Typography>
+                    <Typography variant="h4">{username} / {projectName}</Typography>
+                    <Typography variant="body2"
+                                color="text.secondary">{new Date(project.createdOn).toLocaleDateString()}</Typography>
                     <Typography variant="h5" mt={1}>{project.title}</Typography>
                 </Box>
                 <Box sx={{flexGrow: 1}}/>
-                {isOwner && (
-                    <Button variant="contained" color="error" onClick={() => setConfirmOpen(true)}>
-                        Удалить проект
-                    </Button>
+                {isOwner && <Button onClick={() => setTagDialogOpen(true)}>Редактировать теги</Button>}
+            </Box>
+
+            <TagList tags={project.tags} onTagClick={() => {
+            }}/>
+
+            <Box mb={3}>
+                <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
+                    <Typography variant="h6">Описание</Typography>
+                    {isOwner && (
+                        descEdit
+                            ? <>
+                                <Button size="small" onClick={handleDescSave}>Сохранить</Button>
+                                <Button size="small" onClick={() => {
+                                    setDescEdit(false);
+                                    setDescDraft(project.description);
+                                }}>Отмена</Button>
+                                <Button size="small"
+                                        onClick={() => setPreview(p => !p)}>{preview ? 'Скрыть предпросмотр' : 'Показать предпросмотр'}</Button>
+                            </>
+                            : <Button size="small" onClick={() => setDescEdit(true)}>Редактировать</Button>
+                    )}
+                </Stack>
+                {descEdit
+                    ? <TextField
+                        multiline fullWidth minRows={6}
+                        value={descDraft}
+                        onChange={e => setDescDraft(e.target.value)}
+                    />
+                    : null
+                }
+                {(preview || !descEdit) && (
+                    <Box sx={{border: '1px solid #ddd', p: 2, borderRadius: 1, mt: 1}}>
+                        <ReactMarkdown>{descEdit ? descDraft : project.description || '_No description_'}</ReactMarkdown>
+                    </Box>
                 )}
             </Box>
 
-            {/* Stats */}
-            <Stack
-                direction="row"
-                spacing={4}
-                alignItems="center"
-                mb={2}
-                sx={{color: theme.palette.text.secondary}}
-            >
-                <Stack direction="row" spacing={1} alignItems="center">
-                    <ThumbUpIcon fontSize="small" color="inherit"/>
-                    <Typography variant="body2">{project.likesCount}</Typography>
-                </Stack>
-                <Stack direction="row" spacing={1} alignItems="center">
-                    <DownloadIcon fontSize="small" color="inherit"/>
-                    <Typography variant="body2">{project.downloadsCount}</Typography>
-                </Stack>
-                <Stack direction="row" spacing={1} alignItems="center">
-                    <VisibilityIcon fontSize="small" color="inherit"/>
-                    <Typography variant="body2">{project.viewsCount}</Typography>
-                </Stack>
-            </Stack>
-            <Divider sx={{my: 3}}/>
+            <FormControl fullWidth sx={{mb: 3}}>
+                <InputLabel>Версия</InputLabel>
+                <Select value={selectedVer} label="Версия" onChange={handleVersionChange}>
+                    {versions.map(v => (
+                        <MenuItem key={v.versionName} value={v.versionName}>
+                            {v.versionName} {v.isPrivate && <LockIcon fontSize="small" color="error"/>}
+                        </MenuItem>
+                    ))}
+                </Select>
+                {isOwner && (
+                    <IconButton onClick={handleMenuOpen}
+                                sx={{position: 'absolute', top: 0, right: 0}}><MoreVertIcon/></IconButton>
+                )}
+                <Menu anchorEl={menuAnchor} open={Boolean(menuAnchor)} onClose={handleMenuClose}>
+                    <MenuItem onClick={handleRename}>Переименовать</MenuItem>
+                    <MenuItem
+                        onClick={handleTogglePrivate}>{versions.find(v => v.versionName === selectedVer)?.isPrivate ? 'Сделать публичной' : 'Сделать приватной'}</MenuItem>
+                    <MenuItem onClick={handleSetDefault}>Сделать версией по умолчанию</MenuItem>
+                    <MenuItem onClick={handleDelete}>Удалить</MenuItem>
+                </Menu>
+            </FormControl>
 
-            {/* Tags */}
-            <Box mb={3}>
-                {project.tags.map(tag => (
-                    <Chip
-                        key={tag}
-                        label={tag}
-                        onClick={() => navigate(`/?tag=${encodeURIComponent(tag)}`)}
-                        sx={{mr: 1, mb: 1, cursor: 'pointer'}}
-                    />
-                ))}
-            </Box>
-
-            {/* Description */}
-            <InlineDescription
-                value={project.description}
-                onSave={isOwner ? updateDescription : undefined}
-            />
-
-            {/* Versions */}
-            <VersionTabs
-                versions={versions}
-                current={selectedVer}
-                onSelect={handleVersionSelect}
-                onAdd={isOwner ? handleAddVersion : undefined}
-                onRename={isOwner ? handleRenameVersion : undefined}
-                onDelete={isOwner ? handleDeleteVersion : undefined}
-            />
+            <Table>
+                <TableBody>
+                    <TableRow>
+                        <TableCell>GitHub</TableCell>
+                        <TableCell><a href={project.githubLink} target="_blank"
+                                      rel="noopener noreferrer">{project.githubLink}</a></TableCell>
+                    </TableRow>
+                    <TableRow>
+                        <TableCell>Docker Hub</TableCell>
+                        <TableCell><a href={project.dockerHubLink} target="_blank"
+                                      rel="noopener noreferrer">{project.dockerHubLink}</a></TableCell>
+                    </TableRow>
+                </TableBody>
+            </Table>
+            {isOwner && <Button sx={{mt: 1}} onClick={() => setLinkDialogOpen(true)}>Редактировать ссылки</Button>}
 
             <Divider sx={{my: 3}}/>
-
-            {/* Version Details */}
             <Stack direction="row" spacing={2} mb={3}>
-                <Button href={version.githubLink} target="_blank">GitHub</Button>
-                <Button href={version.dockerHubLink} target="_blank">Docker Hub</Button>
+                <Button href={project.githubLink} target="_blank" variant="outlined">GitHub</Button>
+                <Button href={project.dockerHubLink} target="_blank" variant="outlined">Docker Hub</Button>
             </Stack>
-            {version.dockerCommand?.trim() && (
-                <CopyableCommand onClick={() => handleCopyCommand(username, projectName)}
-                                 command={version.dockerCommand}/>
+            {versionDetail.dockerCommand && (
+                <CopyableCommand command={versionDetail.dockerCommand} onCopy={handleCopyCommand} sx={{mb: 3}}/>
             )}
-            {/* Env Params */}
-            <Box sx={{mb: 3}}>
+
+            <Box mb={3}>
                 <Typography variant="subtitle1" gutterBottom>Переменные окружения</Typography>
-                <Box sx={{
-                    display: "inline-block",
-                    whiteSpace: 'normal',
-                    wordBreak: 'break-all'
-                }}>
-                    <EnvParamsTable
-                        params={version.envParameters}
-                        onAdd={isOwner ? handleAddEnv : undefined}
-                        onUpdate={isOwner ? handleUpdateEnv : undefined}
-                        onDelete={isOwner ? handleDeleteEnv : undefined}
-                    />
-                </Box>
+                <EnvParamsTable
+                    params={versionDetail.envParameters}
+                    onAdd={isOwner ? handleAddEnv : undefined}
+                    onUpdate={isOwner ? handleUpdateEnv : undefined}
+                    onDelete={isOwner ? handleDeleteEnv : undefined}
+                />
             </Box>
         </Container>
     );
