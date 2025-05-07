@@ -101,7 +101,15 @@ export const projectApi = {
 export const projectTagApi = {
 
     searchTags: (query) =>
-        axiosInstance.get(`${API_URLS.TAGS}`, {params: {'q': query}})
+        axiosInstance.get(`${API_URLS.TAGS}`, {params: {'q': query}}),
+
+    // возвращает {tags: [tag, tag...]}
+    getTags: (username, projectName) =>
+        axiosInstance.get(`${PROJECT_URL(username, projectName)}/tags`),
+
+    // dto: {tags: [tag, tag...]}
+    setTags: (username, projectName, dto) =>
+        axiosInstance.put(`${PROJECT_URL(username, projectName)}/tags`, dto),
 
 }
 

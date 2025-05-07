@@ -9,7 +9,7 @@ export default function HomePageContainer() {
     const [projects, setProjects] = useState([]);
     const [page, setPage] = useState(1);
     const [total, setTotal] = useState(0);
-    const limit = 20;
+    const limit = 5;
     const [loading, setLoading] = useState(true);
     // In-memory cache for search results
     const searchCache = useRef({});
@@ -45,6 +45,11 @@ export default function HomePageContainer() {
             setLoading(false);
         }
     };
+
+    // Reset page when search query changes
+    useEffect(() => {
+        setPage(1);
+    }, [search]);
 
     useEffect(() => {
         load();

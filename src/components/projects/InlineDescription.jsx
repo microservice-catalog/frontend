@@ -27,7 +27,7 @@ export default function InlineDescription({value, onSave}) {
         <Box mb={3}>
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
                 <Typography variant="h6">Описание</Typography>
-                <Button size="small" onClick={() => setEditMode(!editMode)}>
+                <Button size="small" variant="contained" onClick={() => setEditMode(!editMode)}>
                     {editMode ? 'Preview' : 'Edit'}
                 </Button>
             </Box>
