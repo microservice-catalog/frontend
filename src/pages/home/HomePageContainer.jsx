@@ -9,7 +9,7 @@ export default function HomePageContainer() {
     const [projects, setProjects] = useState([]);
     const [page, setPage] = useState(1);
     const [total, setTotal] = useState(0);
-    const limit = 5;
+    const limit = 20;
     const [loading, setLoading] = useState(true);
     // In-memory cache for search results
     const searchCache = useRef({});

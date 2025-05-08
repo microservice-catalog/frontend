@@ -6,7 +6,6 @@ import {
     Container,
     Divider,
     FormControl,
-    IconButton,
     InputLabel,
     Menu,
     MenuItem,
@@ -17,8 +16,7 @@ import {
     TableCell,
     TableRow,
     TextField,
-    Typography,
-    useTheme
+    Typography
 } from '@mui/material';
 import {useParams} from 'react-router-dom';
 import LockIcon from '@mui/icons-material/Lock';
@@ -29,12 +27,11 @@ import {useAuth} from '../../context/AuthContext.jsx';
 import TagList from '../../components/common/TagList.jsx';
 import CopyableCommand from '../../components/CopyableCommand.jsx';
 import EnvParamsTable from '../../components/projects/EnvParamsTable.jsx';
-import {LinkEditDialog} from "../../components/projects/LinkEditDialog.jsx";
-import {TagEditDialog} from "../../components/projects/TagEditDialog.jsx";
+import {LinkEditDialog} from '../../components/projects/LinkEditDialog.jsx';
+import {TagEditDialog} from '../../components/projects/TagEditDialog.jsx';
 
 export default function ProjectPageContainer() {
     const {username, projectName} = useParams();
-    const theme = useTheme();
     const {user, isAuthenticated} = useAuth();
     const isOwner = isAuthenticated && user?.username === username;
 
@@ -59,9 +56,11 @@ export default function ProjectPageContainer() {
                 setDescDraft(projRes.data.description || '');
                 const versRes = await projectVersionApi.getAllVersions(username, projectName);
                 setVersions(versRes.data.versions);
-                setSelectedVer(versRes.data.defaultVersionName);
-                const verRes = await projectVersionApi.getProjectVersion(username, projectName, versRes.data.defaultVersionName);
+                const defaultVer = versRes.data.defaultVersionName;
+                setSelectedVer(defaultVer);
+                const verRes = await projectVersionApi.getProjectVersion(username, projectName, defaultVer);
                 setVersionDetail(verRes.data);
+                setDescDraft(verRes.data.description || '');
             } catch (err) {
                 console.error(err);
             } finally {
@@ -71,32 +70,14 @@ export default function ProjectPageContainer() {
         load();
     }, [username, projectName]);
 
-    const reloadProject = async () => {
-        try {
-            const {data} = await projectApi.getProject(username, projectName);
-            setProject(data);
-        } catch (err) {
-            console.error(err);
-        }
-    };
-
-    const handleDescSave = async () => {
-        try {
-            await projectApi.updateProject(username, projectName, {description: descDraft});
-            setProject(p => ({...p, description: descDraft}));
-            setDescEdit(false);
-        } catch (err) {
-            console.error(err);
-        }
-    };
-
     const handleVersionChange = async (e) => {
         const ver = e.target.value;
         setSelectedVer(ver);
         setLoading(true);
         try {
-            const {data} = await projectVersionApi.getProjectVersion(username, projectName, ver);
-            setVersionDetail(data);
+            const res = await projectVersionApi.getProjectVersion(username, projectName, ver);
+            setVersionDetail(res.data);
+            setDescDraft(res.data.description || '');
         } catch (err) {
             console.error(err);
         } finally {
@@ -134,7 +115,7 @@ export default function ProjectPageContainer() {
     const handleSetDefault = async () => {
         handleMenuClose();
         try {
-            await projectVersionApi.makeVersionDefault(username, projectName, selectedVer);
+            await projectVersionApi.updateVersion(username, projectName, selectedVer, {default: true});
         } catch (err) {
             console.error(err);
         }
@@ -153,7 +134,16 @@ export default function ProjectPageContainer() {
         }
     };
 
-    // Handlers for environment parameters
+    const handleDescSave = async () => {
+        try {
+            await projectVersionApi.updateVersion(username, projectName, selectedVer, {description: descDraft});
+            setVersionDetail(v => ({...v, description: descDraft}));
+            setDescEdit(false);
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
     const handleAddEnv = async (dto) => {
         try {
             const {data} = await projectVersionApi.addEnvParam(username, projectName, selectedVer, dto);
@@ -168,7 +158,7 @@ export default function ProjectPageContainer() {
             await projectVersionApi.updateEnvParam(username, projectName, selectedVer, name, dto);
             setVersionDetail(v => ({
                 ...v,
-                envParameters: v.envParameters.map(param => param.name === name ? {...param, ...dto} : param)
+                envParameters: v.envParameters.map(p => p.name === name ? {...p, ...dto} : p)
             }));
         } catch (err) {
             console.error(err);
@@ -180,7 +170,7 @@ export default function ProjectPageContainer() {
             await projectVersionApi.deleteEnvParam(username, projectName, selectedVer, name);
             setVersionDetail(v => ({
                 ...v,
-                envParameters: v.envParameters.filter(param => param.name !== name)
+                envParameters: v.envParameters.filter(p => p.name !== name)
             }));
         } catch (err) {
             console.error(err);
@@ -188,136 +178,150 @@ export default function ProjectPageContainer() {
     };
 
     const handleCopyCommand = () => {
-        projectApi.incrementPulls(username, projectName).catch(() => {
+        projectVersionApi.incrementPulls?.(username, projectName).catch(() => {
         });
     };
 
     const handleLinksSave = async ({github, docker}) => {
-        await projectApi.updateProject(username, projectName, {githubLink: github, dockerHubLink: docker});
-        setProject(p => ({...p, githubLink: github, dockerHubLink: docker}));
-        await reloadProject();
+        try {
+            await projectVersionApi.updateVersion(username, projectName, selectedVer, {
+                githubLink: github,
+                dockerHubLink: docker
+            });
+            setVersionDetail(v => ({...v, githubLink: github, dockerHubLink: docker}));
+        } catch (err) {
+            console.error(err);
+        }
     };
 
-    if (loading || !project || !versionDetail) {
+    if (loading || !versionDetail) {
         return <Box textAlign="center" mt={4}><CircularProgress/></Box>;
     }
-
-    const formatDate = (date) => date.toLocaleDateString('ru-RU', {day: 'numeric', month: 'short', year: 'numeric'});
 
     return (
         <Container sx={{py: 4}}>
             <TagEditDialog
                 open={tagDialogOpen}
-                initialTags={project.tags}
+                initialTags={project.tags || []}
                 onClose={() => setTagDialogOpen(false)}
-                onSave={(tags) => setProject(p => ({...p, tags}))}
+                onSave={tags => setVersionDetail(v => ({...v, tags}))}
                 username={username}
                 projectName={projectName}
             />
 
             <LinkEditDialog
                 open={linkDialogOpen}
-                initial={{github: project.githubLink, docker: project.dockerHubLink}}
+                initial={{github: versionDetail.githubLink, docker: versionDetail.dockerHubLink}}
                 onClose={() => setLinkDialogOpen(false)}
                 onSave={handleLinksSave}
             />
 
-            <Box display="flex" alignItems="center" mb={2}>
-                <Box>
-                    <Typography variant="h4">{username} / {projectName}</Typography>
-                    <Typography variant="body2"
-                                color="text.secondary">{formatDate(new Date(project.createdOn))}</Typography>
-                    <Typography variant="h5" mt={1}>{project.title}</Typography>
-                </Box>
-                <Box sx={{flexGrow: 1}}/>
-                {isOwner && <Button onClick={() => setTagDialogOpen(true)}>Редактировать теги</Button>}
-            </Box>
+            <Stack direction="row" alignItems="center" spacing={2} mb={2}>
+                <Typography variant="h4">{projectName}</Typography>
+                <Button variant="outlined" onClick={() => setTagDialogOpen(true)} disabled={!isOwner}>Редактировать
+                    теги</Button>
+            </Stack>
 
-            <TagList tags={project.tags} onTagClick={() => {
+            {/* Tags */}
+            <TagList tags={project.tags || []} onTagClick={() => {
             }}/>
 
-            <Box mb={3}>
-                <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
-                    <Typography variant="h6">Описание</Typography>
-                    {isOwner && (
-                        descEdit
-                            ? <>
-                                <Button size="small" onClick={handleDescSave}>Сохранить</Button>
-                                <Button size="small" onClick={() => {
-                                    setDescEdit(false);
-                                    setDescDraft(project.description);
-                                }}>Отмена</Button>
-                                <Button size="small"
-                                        onClick={() => setPreview(p => !p)}>{preview ? 'Скрыть предпросмотр' : 'Показать предпросмотр'}</Button>
-                            </>
-                            : <Button size="small" onClick={() => setDescEdit(true)}>Редактировать</Button>
-                    )}
-                </Stack>
-                {descEdit
-                    ? <TextField
-                        multiline fullWidth minRows={6}
-                        value={descDraft}
-                        onChange={e => setDescDraft(e.target.value)}
-                    />
-                    : null
-                }
-                {(preview || !descEdit) && (
-                    <Box sx={{border: '1px solid #ddd', p: 2, borderRadius: 1, mt: 1}}>
-                        <ReactMarkdown>{descEdit ? descDraft : project.description || '_No description_'}</ReactMarkdown>
-                    </Box>
-                )}
-            </Box>
-
-            <FormControl fullWidth sx={{mb: 3}}>
-                <InputLabel>Версия</InputLabel>
-                <Select value={selectedVer} label="Версия" sx={{width: {xs: 200, sm: 600}}}
-                        onChange={handleVersionChange} variant="outlined">
-                    {versions.map(v => (
-                        <MenuItem key={v.versionName} value={v.versionName}>
-                            {v.versionName} {v.isPrivate && <LockIcon fontSize="small" color="error"/>}
-                        </MenuItem>
-                    ))}
-                </Select>
+            {/* Description */}
+            <Stack direction="row" justifyContent="space-between" alignItems="center" mt={3}>
+                <Typography variant="h6">Описание</Typography>
                 {isOwner && (
-                    <IconButton onClick={handleMenuOpen}
-                                sx={{position: 'absolute', top: 0, right: 0, color: theme.palette.text.primary}}
-                    ><MoreVertIcon/></IconButton>
+                    descEdit
+                        ? <>
+                            <Button size="small" onClick={handleDescSave}>Сохранить</Button>
+                            <Button size="small" onClick={() => {
+                                setDescEdit(false);
+                                setDescDraft(project.description || '');
+                            }}>Отмена</Button>
+                            <Button size="small"
+                                    onClick={() => setPreview(p => !p)}>{preview ? 'Скрыть предпросмотр' : 'Показать предпросмотр'}</Button>
+                        </>
+                        : <Button size="small" onClick={() => setDescEdit(true)}>Редактировать</Button>
+                )}
+            </Stack>
+            {(descEdit && !preview)
+                ? <TextField multiline fullWidth minRows={6} value={descDraft}
+                             onChange={e => setDescDraft(e.target.value)} sx={{mt: 1}}/>
+                : null
+            }
+            {(preview || !descEdit) && (
+                <Box sx={{border: '1px solid #ddd', p: 2, borderRadius: 1, mt: 1}}>
+                    <ReactMarkdown>{descEdit ? descDraft : project.description || '_'}</ReactMarkdown>
+                </Box>
+            )}
+
+            {/* Versions */}
+            <Stack direction="row" alignItems="center" spacing={2} mt={3}>
+                <FormControl variant="outlined" size="small">
+                    <InputLabel>Версия</InputLabel>
+                    <Select value={selectedVer} label="Версия" onChange={handleVersionChange} variant="outlined">
+                        {versions.map(v => (
+                            <MenuItem key={v.versionName} value={v.versionName}>
+                                {v.versionName} {v.isPrivate && <LockIcon fontSize="small" color="error"/>}
+                            </MenuItem>
+                        ))}
+                    </Select>
+                </FormControl>
+                {isOwner && (
+                    <Button variant="outlined" size="small" startIcon={<MoreVertIcon/>}
+                            onClick={handleMenuOpen}>Меню</Button>
                 )}
                 <Menu anchorEl={menuAnchor} open={Boolean(menuAnchor)} onClose={handleMenuClose}>
                     <MenuItem onClick={handleRename}>Переименовать</MenuItem>
                     <MenuItem
                         onClick={handleTogglePrivate}>{versions.find(v => v.versionName === selectedVer)?.isPrivate ? 'Сделать публичной' : 'Сделать приватной'}</MenuItem>
-                    <MenuItem onClick={handleSetDefault}>Сделать версией по умолчанию</MenuItem>
+                    <MenuItem onClick={handleSetDefault}>Сделать по умолчанию</MenuItem>
                     <MenuItem onClick={handleDelete}>Удалить</MenuItem>
                 </Menu>
-            </FormControl>
+            </Stack>
 
-            <Table>
+            {/* Links Table */}
+            <Table sx={{mt: 3}}>
                 <TableBody>
                     <TableRow>
                         <TableCell>GitHub</TableCell>
-                        <TableCell><a href={project.githubLink} target="_blank"
-                                      rel="noopener noreferrer">{project.githubLink}</a></TableCell>
+                        <TableCell>{versionDetail.githubLink || '-'}</TableCell>
+                        <TableCell>
+                            <Button
+                                variant="outlined"
+                                size="small"
+                                component="a"
+                                href={versionDetail.githubLink}
+                                target="_blank"
+                                disabled={!versionDetail.githubLink}
+                            >Открыть</Button>
+                        </TableCell>
                     </TableRow>
                     <TableRow>
                         <TableCell>Docker Hub</TableCell>
-                        <TableCell><a href={project.dockerHubLink} target="_blank"
-                                      rel="noopener noreferrer">{project.dockerHubLink}</a></TableCell>
+                        <TableCell>{versionDetail.dockerHubLink || '-'}</TableCell>
+                        <TableCell>
+                            <Button
+                                variant="outlined"
+                                size="small"
+                                component="a"
+                                href={versionDetail.dockerHubLink}
+                                target="_blank"
+                                disabled={!versionDetail.dockerHubLink}
+                            >Открыть</Button>
+                        </TableCell>
                     </TableRow>
                 </TableBody>
             </Table>
             {isOwner && <Button sx={{mt: 1}} onClick={() => setLinkDialogOpen(true)}>Редактировать ссылки</Button>}
 
             <Divider sx={{my: 3}}/>
-            <Stack direction="row" spacing={2} mb={3}>
-                <Button href={project.githubLink} target="_blank" variant="outlined">GitHub</Button>
-                <Button href={project.dockerHubLink} target="_blank" variant="outlined">Docker Hub</Button>
-            </Stack>
+
             {versionDetail.dockerCommand && (
                 <CopyableCommand command={versionDetail.dockerCommand} onCopy={handleCopyCommand} sx={{mb: 3}}/>
             )}
 
-            <Box mb={3}>
+            {/* Environment Parameters */}
+            <Box>
                 <Typography variant="subtitle1" gutterBottom>Переменные окружения</Typography>
                 <EnvParamsTable
                     params={versionDetail.envParameters}
