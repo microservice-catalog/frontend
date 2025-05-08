@@ -1,8 +1,8 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {Alert, Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField, useTheme} from '@mui/material';
 import Autocomplete from '@mui/material/Autocomplete';
-import {projectTagApi} from '../../api/api.jsx';
-import TagList from '../../components/common/TagList.jsx';
+import {projectTagApi} from '../../../api/api.jsx';
+import TagList from '../../common/TagList.jsx';
 
 // Dialog to edit tags with autocomplete and caching
 export function TagEditDialog({open, initialTags, onClose, onSave, username, projectName}) {

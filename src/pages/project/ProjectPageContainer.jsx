@@ -25,10 +25,10 @@ import ReactMarkdown from 'react-markdown';
 import {projectApi, projectVersionApi} from '../../api/api.jsx';
 import {useAuth} from '../../context/AuthContext.jsx';
 import TagList from '../../components/common/TagList.jsx';
-import CopyableCommand from '../../components/CopyableCommand.jsx';
+import CopyableCommand from '../../components/projects/CopyableCommand.jsx';
 import EnvParamsTable from '../../components/projects/EnvParamsTable.jsx';
-import {LinkEditDialog} from '../../components/projects/LinkEditDialog.jsx';
-import {TagEditDialog} from '../../components/projects/TagEditDialog.jsx';
+import {LinkEditDialog} from '../../components/projects/dialog/LinkEditDialog.jsx';
+import {TagEditDialog} from '../../components/projects/dialog/TagEditDialog.jsx';
 
 export default function ProjectPageContainer() {
     const navigate = useNavigate();
@@ -182,7 +182,7 @@ export default function ProjectPageContainer() {
     };
 
     const handleCopyCommand = () => {
-        projectVersionApi.incrementPulls?.(username, projectName).catch(() => {
+        projectApi.incrementPulls?.(username, projectName).catch(() => {
         });
     };
 

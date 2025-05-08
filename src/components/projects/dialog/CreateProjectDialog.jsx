@@ -12,7 +12,7 @@ import {
     TextField,
     useTheme
 } from '@mui/material';
-import {projectApi} from '../../api/api.jsx';
+import {projectApi} from '../../../api/api.jsx';
 
 const DOCKER_PREFIX = 'https://hub.docker.com/r/';
 const GITHUB_PREFIX = 'https://github.com/';

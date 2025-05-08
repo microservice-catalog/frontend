@@ -3,7 +3,7 @@ import React, {createContext, useCallback, useEffect, useRef, useState} from 're
 import {projectTagApi} from '../../api/api.jsx'
 import HeaderView from './HeaderView.jsx'
 import {useAuth} from '../../context/AuthContext.jsx'
-import CreateProjectDialog from '../projects/CreateProjectDialog.jsx'
+import CreateProjectDialog from '../projects/dialog/CreateProjectDialog.jsx'
 import {useSearchParams} from "react-router-dom";
 
 export const FilterContext = createContext({

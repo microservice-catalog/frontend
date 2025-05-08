@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {Link} from 'react-router-dom';
+import {Link, useNavigate} from 'react-router-dom';
 import {AppBar, Autocomplete, Box, Skeleton, TextField, Toolbar, Typography, useTheme} from '@mui/material';
 import ProfileView from './ProfileView.jsx';
 
@@ -18,6 +18,7 @@ export default function HeaderView({
     const [search, setSearch] = useState('');
     const [tags, setTags] = useState([]);
     const theme = useTheme();
+    const navigate = useNavigate();
 
     const handleSearch = (e) => {
         const value = e.target.value;
@@ -35,6 +36,7 @@ export default function HeaderView({
         onSearchChange?.('');
         setTags([]);
         onTagsChange?.([]);
+        // navigate("/");
     }
 
     if (loading) {
@@ -69,7 +71,10 @@ export default function HeaderView({
                     variant="h6"
                     component={Link}
                     to="/"
-                    onClick={clearSearch}
+                    onClick={() => {
+                        clearSearch();
+                        navigate('/');
+                    }}
                     sx={{
                         flexGrow: 1,
                         color: theme.palette.text.primary
