@@ -197,6 +197,7 @@ export default function ProjectPageContainer() {
     if (loading || !versionDetail) {
         return <Box textAlign="center" mt={4}><CircularProgress/></Box>;
     }
+    const formatDate = (date) => date.toLocaleDateString('ru-RU', {day: 'numeric', month: 'short', year: 'numeric'});
 
     return (
         <Container sx={{py: 4}}>
@@ -216,11 +217,18 @@ export default function ProjectPageContainer() {
                 onSave={handleLinksSave}
             />
 
-            <Stack direction="row" alignItems="center" spacing={2} mb={2}>
-                <Typography variant="h4">{projectName}</Typography>
-                <Button variant="outlined" onClick={() => setTagDialogOpen(true)} disabled={!isOwner}>Редактировать
-                    теги</Button>
-            </Stack>
+            <Box display="flex" alignItems="center" mb={2}>
+                <Box>
+                    <Typography variant="h4">{username} / {projectName}</Typography>
+                    <Typography variant="body2"
+                                color="text.secondary">{formatDate(new Date(project.createdOn))}</Typography>
+                    <Typography variant="h5" mt={1}>{project.title}</Typography>
+                </Box>
+                <Box sx={{flexGrow: 1}}/>
+                {isOwner &&
+                    <Button variant="outlined" onClick={() => setTagDialogOpen(true)}>Редактировать теги</Button>}
+            </Box>
+
 
             {/* Tags */}
             <TagList tags={project.tags || []} onTagClick={() => {

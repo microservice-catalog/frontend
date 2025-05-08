@@ -16,7 +16,7 @@ const DOCKER_PREFIX = 'https://hub.docker.com/r/';
 
 export function LinkEditDialog({open, onClose, onSave, initial}) {
     const theme = useTheme();
-    const trim = (url = '', prefix) => url.startsWith(prefix) ? url.substring(prefix.length) : url;
+    const trim = (url = '', prefix) => url?.startsWith(prefix) ? url?.substring(prefix.length) : url;
 
     const [draft, setDraft] = useState({
         github: trim(initial.github, GITHUB_PREFIX),
