@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 import {Link} from 'react-router-dom';
-import {AppBar, Autocomplete, Box, Button, Skeleton, TextField, Toolbar, Typography, useTheme} from '@mui/material';
+import {AppBar, Autocomplete, Box, Skeleton, TextField, Toolbar, Typography, useTheme} from '@mui/material';
 import ProfileView from './ProfileView.jsx';
 
 export default function HeaderView({
@@ -29,6 +29,13 @@ export default function HeaderView({
         setTags(value);
         onTagsChange?.(value);
     };
+
+    const clearSearch = () => {
+        setSearch('');
+        onSearchChange?.('');
+        setTags([]);
+        onTagsChange?.([]);
+    }
 
     if (loading) {
         return (
@@ -62,6 +69,7 @@ export default function HeaderView({
                     variant="h6"
                     component={Link}
                     to="/"
+                    onClick={clearSearch}
                     sx={{
                         flexGrow: 1,
                         color: theme.palette.text.primary
@@ -94,20 +102,14 @@ export default function HeaderView({
 
                 <Box sx={{flexGrow: 1, ml: 2}}/>
 
-                {isAuthenticated && (
-                    <>
-                        <Button color="inherit" onClick={onCreateProject}>
-                            Создать сервис
-                        </Button>
-                    </>
-                )}
-
                 <Box sx={{ml: 2}}>
                     <ProfileView
                         isAuthenticated={isAuthenticated}
                         avatarUrl={avatarUrl}
                         onLogout={onLogout}
+                        onCreateProject={onCreateProject}
                         username={username}
+                        color={theme.palette.text.primary}
                     />
                 </Box>
             </Toolbar>

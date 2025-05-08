@@ -116,7 +116,7 @@ export default function CreateProjectDialog({open, onClose, onCreated, username}
 
     return (
         <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-            <DialogTitle>Создать проект</DialogTitle>
+            <DialogTitle>Создать карточку сервиса</DialogTitle>
             <DialogContent dividers>
                 <TextField
                     label="Заголовок"

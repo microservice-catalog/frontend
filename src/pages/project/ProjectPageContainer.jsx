@@ -18,7 +18,7 @@ import {
     TextField,
     Typography
 } from '@mui/material';
-import {useParams} from 'react-router-dom';
+import {useNavigate, useParams} from 'react-router-dom';
 import LockIcon from '@mui/icons-material/Lock';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import ReactMarkdown from 'react-markdown';
@@ -31,6 +31,7 @@ import {LinkEditDialog} from '../../components/projects/LinkEditDialog.jsx';
 import {TagEditDialog} from '../../components/projects/TagEditDialog.jsx';
 
 export default function ProjectPageContainer() {
+    const navigate = useNavigate();
     const {username, projectName} = useParams();
     const {user, isAuthenticated} = useAuth();
     const isOwner = isAuthenticated && user?.username === username;
@@ -208,7 +209,7 @@ export default function ProjectPageContainer() {
                 open={tagDialogOpen}
                 initialTags={project.tags || []}
                 onClose={() => setTagDialogOpen(false)}
-                onSave={tags => setVersionDetail(v => ({...v, tags}))}
+                onSave={tags => setProject(p => ({...p, tags}))}
                 username={username}
                 projectName={projectName}
             />
@@ -234,7 +235,8 @@ export default function ProjectPageContainer() {
 
 
             {/* Tags */}
-            <TagList tags={project.tags || []} onTagClick={() => {
+            <TagList tags={project.tags || []} onTagClick={(tag) => {
+                // navigate(`/?t=${encodeURIComponent(tag)}`);
             }}/>
 
             {/* Description */}

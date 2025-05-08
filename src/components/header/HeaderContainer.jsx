@@ -1,9 +1,10 @@
 // src/components/Header/HeaderContainer.jsx
-import React, {createContext, useCallback, useRef, useState} from 'react'
+import React, {createContext, useCallback, useEffect, useRef, useState} from 'react'
 import {projectTagApi} from '../../api/api.jsx'
 import HeaderView from './HeaderView.jsx'
 import {useAuth} from '../../context/AuthContext.jsx'
 import CreateProjectDialog from '../projects/CreateProjectDialog.jsx'
+import {useSearchParams} from "react-router-dom";
 
 export const FilterContext = createContext({
     search: '',
@@ -12,11 +13,13 @@ export const FilterContext = createContext({
 
 export default function HeaderContainer({children}) {
     const {user, logout, isAuthenticated, loading} = useAuth();
-
+    const [searchParams, setSearchParams] = useSearchParams();
+    const initialQuery = searchParams.get('q') || '';
+    const initialTags = searchParams.getAll('t');
     const [tagOptions, setTagOptions] = useState([]);
 
-    const [search, setSearch] = useState('');
-    const [filterTags, setFilterTags] = useState([]);
+    const [search, setSearch] = useState(initialQuery);
+    const [filterTags, setFilterTags] = useState(initialTags);
     const [createOpen, setCreateOpen] = useState(false);
     const cache = useRef({}); // Кеш поиска по тегам. Здесь храним { [query]: [...tags] }
 
@@ -43,6 +46,14 @@ export default function HeaderContainer({children}) {
         setCreateOpen(false);
         window.location.href = `/${user.username}/${dto.projectName}`;
     };
+
+    useEffect(() => {
+        const params = {};
+        if (search) params.q = search;
+        if (filterTags.length) params.t = filterTags;
+        // replace: true — чтобы не засорять историю переходов
+        setSearchParams(params, {replace: true});
+    }, [search, filterTags, setSearchParams]);
 
     return (
         <FilterContext.Provider value={{search, filterTags}}>

@@ -1,7 +1,7 @@
 // src/components/Header/ProfileView.jsx
 import React, {useState} from 'react';
 import {Link} from 'react-router-dom';
-import {Box, Button, IconButton, Menu, MenuItem, Stack, Typography} from '@mui/material';
+import {Box, Button, IconButton, Menu, MenuItem, Stack, Typography, useTheme} from '@mui/material';
 import {useThemeContext} from '../../context/ThemeContext.jsx';
 import ThemeSwitch from '../common/ThemeSwitch.jsx';
 import AvatarWithFallback from '../common/AvatarWithFallback.jsx';
@@ -12,18 +12,18 @@ const DEFAULT_AVATAR_URL = '/images/default-avatar.png';
 
 function ProfileGuest() {
     return (
-        <Stack direction="row" spacing={1}>
-            <Button color="inherit" component={Link} to="/login">
+        <Stack color="inherit" direction="row" spacing={1}>
+            <Button variant="outlined" component={Link} to="/login">
                 Войти
             </Button>
-            <Button color="inherit" component={Link} to="/register">
+            <Button variant="contained" component={Link} to="/register">
                 Регистрация
             </Button>
         </Stack>
     );
 }
 
-function ProfileAuth({avatarUrl, onLogout, username}) {
+function ProfileAuth({avatarUrl, onLogout, username, onCreateProject}) {
     const {mode, toggleMode} = useThemeContext();
     const [anchorEl, setAnchorEl] = useState(null);
 
@@ -47,7 +47,10 @@ function ProfileAuth({avatarUrl, onLogout, username}) {
     };
 
     return (
-        <Box>
+        <Box display="flex">
+            <Button variant="contained" onClick={onCreateProject} sx={{mr: 1, my: 1, px: 1, py: '1px'}}>
+                Создать сервис
+            </Button>
             <IconButton onClick={handleAvatarClick} size="large">
                 <AvatarWithFallback src={imgSrc} size={40} extraLoading={avatarLoading}
                                     alt="User Avatar2"/>
@@ -80,10 +83,17 @@ function ProfileAuth({avatarUrl, onLogout, username}) {
     );
 }
 
-export default function ProfileView({isAuthenticated, avatarUrl, onLogout, username}) {
+export default function ProfileView({isAuthenticated, avatarUrl, onLogout, username, onCreateProject}) {
+    const theme = useTheme();
     return isAuthenticated ? (
-        <ProfileAuth avatarUrl={avatarUrl} onLogout={onLogout} username={username}/>
+        <ProfileAuth
+            sx={{color: theme.palette.text.primary}}
+            avatarUrl={avatarUrl}
+            onLogout={onLogout}
+            username={username}
+            onCreateProject={onCreateProject}
+        />
     ) : (
-        <ProfileGuest/>
+        <ProfileGuest sx={{color: theme.palette.text.primary}}/>
     );
 }
