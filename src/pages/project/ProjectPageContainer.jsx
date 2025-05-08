@@ -87,6 +87,9 @@ export default function ProjectPageContainer() {
 
     const handleMenuOpen = (e) => setMenuAnchor(e.currentTarget);
     const handleMenuClose = () => setMenuAnchor(null);
+    const handleCreateVersion = async () => {
+        // todo
+    }
 
     const handleRename = async () => {
         handleMenuClose();
@@ -275,13 +278,17 @@ export default function ProjectPageContainer() {
                     </Select>
                 </FormControl>
                 {isOwner && (
-                    <Button variant="outlined" size="small" startIcon={<MoreVertIcon/>}
-                            onClick={handleMenuOpen}>Меню</Button>
+                    <Button variant="outlined" size="small" startIcon={<MoreVertIcon/>} onClick={handleMenuOpen}>
+                        Меню версии
+                    </Button>
                 )}
                 <Menu anchorEl={menuAnchor} open={Boolean(menuAnchor)} onClose={handleMenuClose}>
                     <MenuItem onClick={handleRename}>Переименовать</MenuItem>
                     <MenuItem
-                        onClick={handleTogglePrivate}>{versions.find(v => v.versionName === selectedVer)?.isPrivate ? 'Сделать публичной' : 'Сделать приватной'}</MenuItem>
+                        onClick={handleTogglePrivate}>{versions.find(v => v.versionName === selectedVer)?.isPrivate
+                        ? 'Сделать публичной'
+                        : 'Сделать приватной'}
+                    </MenuItem>
                     <MenuItem onClick={handleSetDefault}>Сделать по умолчанию</MenuItem>
                     <MenuItem onClick={handleDelete}>Удалить</MenuItem>
                 </Menu>
